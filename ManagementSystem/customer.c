@@ -16,7 +16,7 @@ void CustomerMenu(Customer customer[], Order order[], Product product[], int cus
 	flag = SearchCustomer(customer, customer_orderNum, name); /*若不为0 则返回该客户在数组中的下标数*/
 	if (flag == -1)
 	{
-		AddCustomer(customer, customer_orderNum); /*添加客户*/
+		AddCustomer(customer, customer_orderNum, name); /*添加客户*/
 	}
 	
 	/*功能选择菜单*/
@@ -45,29 +45,34 @@ void CustomerMenu(Customer customer[], Order order[], Product product[], int cus
 				break;
 			case 2:
 				/*输入订单号进行查找*/
-				fflush(stdin);
 				printf("\n\t\t请输入订单号:");
+				
+				fflush(stdin);
 				scanf("%d",&order_number);
+				
 				ShowReceipt(customer, order, order_number, customer_orderNum); /*打印发票*/
 				break;
 			case 3:
 				/*输入订单号进行支付*/
-				fflush(stdin);
 				printf("\n\t\t请输入订单号:");
+				
+				fflush(stdin);
 				scanf("%d",&order_number);
+				
 				Pay(order, customer_orderNum, order_number);/*支付订单*/
 				break;
 			case 4:
+				flag = SearchCustomer(customer, customer_orderNum, name);
 				ChangeCustomerInfor(customer, flag);
 				break;
 			case 5:
-				printf("\n\t\t");
-				system("pause");
 				/*返回上一界面*/
 				return;
 			default: continue;
 		}
-	}	
+		printf("\n\t\t");
+		system("pause");
+	}
 }
 
 /*购买商品菜单函数*/
@@ -79,6 +84,9 @@ void PurchaseMenu(Customer customer[], Order order[], int customer_orderNum[], P
 	char str_time[30] = {0};/*存储时间的字符串*/
 	char *p_time; /*时间指针*/
 	int i; /*迭代器*/
+	
+	char order_infor[100];
+	int PurchaseItems[42] = {0}; /*用数组存储客户一次订单购买的商品及其数量,下标为偶数存储商品编号,下标为奇数存储购买的数量*/
 	
 	while (1)
 	{
@@ -119,47 +127,60 @@ void PurchaseMenu(Customer customer[], Order order[], int customer_orderNum[], P
 		{
 			case 22:
 				int choice;/*确认是否完成订单 完成则生成订单 否则可以继续追加商品*/
+				
 				printf("\n\t\t是否完成订单(1-是 0-否):");
+				
 				fflush(stdin);
 				scanf("%d",&choice);
+				
 				if (choice ==1)
 				{
-					AddOrder(order, customer, name, customer_orderNum);/*生成订单*/
-					order[customer_orderNum[1] -1].details.total_price += cost; 
-					order[customer_orderNum[1] -1].details.amount += amount;
+					AddOrder(order, customer, name, customer_orderNum, PurchaseItems);/*生成订单*/
+					
+					order[customer_orderNum[1] -1].total_price += cost; 
+					order[customer_orderNum[1] -1].amount += amount;
 					order[customer_orderNum[1] -1].pay_flag = 0; 		/*默认订单刚开始未付款*/
 					order[customer_orderNum[1] -1].transport_flag = 0;	/*订单未开始配送*/
 					order[customer_orderNum[1] -1].transport_pay = (rand()+1)*1.0/(RAND_MAX+2)*6 + 1;	/*随机生成1-7之间的浮点数作为运费*/
+					
 					p_time = GetTime(str_time);
+					
 					strcpy(order[customer_orderNum[1] -1].pay_date, p_time);
-					printf("\n\t\t您的订单号为:%d",10100+customer_orderNum[1]);/*给客户显示订单号 方便查找*/
+					strcpy(order[customer_orderNum[1] -1].information, AssignItems(product, PurchaseItems, order_infor) );
+					
+					printf("\n\t\t您的订单号为:%d",order[customer_orderNum[1] -1].number);/*给客户显示订单号 方便查找*/
 				}
 				else if (choice == 0)
 				{
 					continue;
 				}
-				printf("\n\t\t");
-				system("pause");
+				
 				return;
 			default: 
 				int num = 0; /*购买商品的数量*/ 
-				fflush(stdin); 
+				
 				printf("\n\t\t请输入你要选购的数量:"); /*输入数量*/
+				
+				fflush(stdin); 
 				scanf("%d",&num);
+				
 				amount += num;
 				cost += product[option-1].price * num; /*总价依据price数组中的数据增加*/
+				product[option-1].amount -= num; /*库存量减少*/
+				PurchaseItems[(option*2)-1] = num; /*选购商品数量存储在奇数位下标*/
+				PurchaseItems[(option-1)*2] = option; /*商品编号存储在偶数位下标*/
 		}
 	}
 }
 
 /*输入顾客基本信息*/
-Customer InputCustomer(Customer c, int customer_orderNum[]) 
+Customer InputCustomer(Customer c, int customer_orderNum[], char name[]) 
 {
 	printf("\n\t\t请输入个人信息\n");
 	
-	c.num = 240300+customer_orderNum[0]+1;
+	c.num = 240300+customer_orderNum[0] + (rand()%100 +1) ;
 	printf("\t\t昵称:"); gets(c.id);
-	printf("\t\t姓名:"); gets(c.name);
+	printf("\t\t姓名:%s\n",name); strcpy(c.name, name);
 	printf("\t\t地址:"); gets(c.address);
 	printf("\t\t邮编:"); gets(c.postcode);
 	printf("\t\t电话:"); gets(c.phone);
@@ -168,18 +189,18 @@ Customer InputCustomer(Customer c, int customer_orderNum[])
 }
 
 /*添加顾客并输入基本信息*/
-void AddCustomer(Customer customer[], int customer_orderNum[]) 
+void AddCustomer(Customer customer[], int customer_orderNum[], char name[]) 
 {
 	/*输入客户的代码、名称和姓名*/
 	Customer cus;
 	
-	customer[customer_orderNum[0]] = InputCustomer(cus, customer_orderNum);
+	customer[customer_orderNum[0]] = InputCustomer(cus, customer_orderNum, name);
 	
 	/*顾客数加1*/
 	customer_orderNum[0]++;
 }
 
-/*查找顾客是否已注册过系统 返回1则已注册 0则没有注册*/
+/*查找顾客是否已注册过系统 已注册则返回客户在数组的下标  返回-1则表示没有注册*/
 int SearchCustomer(Customer customer[], int customer_orderNum[], char var_name[])
 {
 	int i;
@@ -196,11 +217,11 @@ int SearchCustomer(Customer customer[], int customer_orderNum[], char var_name[]
 }
 
 /*添加订单并赋值基本信息*/
-void AddOrder(Order order[], Customer customer[], char name[], int customer_orderNum[])
+void AddOrder(Order order[], Customer customer[], char name[], int customer_orderNum[], int PurchaseItems[])
 {
 	int i;
 	
-	order[customer_orderNum[1]].number = 10100+customer_orderNum[1]+1;  /*订单号*/
+	order[customer_orderNum[1]].number = 10100+customer_orderNum[1]+(rand()%100 + 1);  /*订单号*/
 	/*确定订单人及其代码*/
 	for (i=0; i<customer_orderNum[0]; i++)
 	{
@@ -213,6 +234,51 @@ void AddOrder(Order order[], Customer customer[], char name[], int customer_orde
 	customer_orderNum[1]++;
 }
 
+/*将所有购买的商品名及其数量赋值在订单的information中 方便客户查看*/
+char* AssignItems(Product product[], int PurchaseItems[], char* information)
+{
+	int len = 0; /*字符串长度 用来移动字符串赋值初位置*/
+	int j = 1; 
+	int product_num; /*获取PurchaseItems里的商品编号，用于读取对应的商品名*/
+	char product_name[7]; /*存取商品的名称*/
+	char num[3];/*存取商品购买数量的字符串*/
+	
+	while (1)
+	{
+		if(j == 22)
+		{
+			break;
+		}
+		product_num = PurchaseItems[(j-1)*2]; /*获取购买商品的编号*/
+		if (product_num == 0) /*若值为0 则表明未购买 直接检索下一商品*/
+		{
+			j++;
+			continue;
+		}
+		else
+		{
+			strcpy(product_name, product[product_num-1].information); /*赋值商品名*/
+			
+			strcpy(information + len, product_name);/*将商品名赋值到information中*/
+			len += strlen(product_name);
+			
+			strcpy(information + len, "*");/*赋值乘号*/
+			len++;
+			
+			sprintf(num, "%d", PurchaseItems[(j*2)-1]);/*将购买商品的数量的int型转化为字符串型*/
+			
+			strcpy(information + len, num);/*赋值数量值*/
+			len += strlen(num);
+			
+			strcpy(information + len, " ");/*赋值空格 用于隔开各商品*/
+			len++;
+			
+			j++;
+		}
+	}
+	return information;
+}
+
 /*遍历显示所有订单及其信息*/
 void TraversalOrder(Order order[], int customer_orderNum[]) 
 {
@@ -223,13 +289,17 @@ void TraversalOrder(Order order[], int customer_orderNum[])
 	{
 		printf("\n\t\t订单号:%d",order[i].number);
 		printf("\n\t\t顾客代码:%d",order[i].customer_num);
-		printf("\n\t\t订单费用:%.1lf 元",order[i].details.total_price);
+		printf("\n\t\t订单费用:%.1lf 元",order[i].total_price);
 		printf("\n\t\t运费:%.1lf 元",order[i].transport_pay);
-		printf("\n\t\t总费用:%.1lf 元",order[i].details.total_price + order[i].transport_pay);
-		printf("\n\t\t数量:%.0lf",order[i].details.amount);
+		printf("\n\t\t总费用:%.1lf 元",order[i].total_price + order[i].transport_pay);
+		printf("\n\t\t详细信息:%s",order[i].information);
+		printf("\n\t\t数量:%.0lf",order[i].amount);
 		printf("\n\t\t下单日期:%s",order[i].pay_date);
+		if (order[i].transport_flag == 1)
+		{
+			printf("\n\t\t发货日期:%s",order[i].transport_date);
+		}
 	}
-	
 	printf("\n\t\t");
 	system("pause");
 }
@@ -248,7 +318,6 @@ void TraversalCustomer(Customer customer[], int customer_orderNum[])
 		printf("\n\t\t邮编:%s",customer[i].postcode);
 		printf("\n\t\t电话:%s",customer[i].phone);
 	}
-	
 	printf("\n\t\t");
 	system("pause");
 }
@@ -330,11 +399,12 @@ void ShowReceipt(Customer customer[], Order order[], int order_number, int custo
 		printf("\n客户      %s",customer[j].name);
 		printf("\n客户昵称  %s",customer[j].id);
 		printf("\n客户代码  %d",customer[j].num);
+		printf("\n\n详细信息  %s",order[i].information);
 		printf("\n\n配送地址  %s",customer[j].address);
 		printf("\n邮政编码  %s",customer[j].postcode);
 		printf("\n联系电话  %s",customer[j].phone);
-		printf("\n订单费用  %.1lf 元",order[i].details.total_price);
-		printf("\n共\t  %.0lf 项",order[i].details.amount);
+		printf("\n订单费用  %.1lf 元",order[i].total_price);
+		printf("\n共\t  %.0lf 项",order[i].amount);
 		printf("\n运费      %.1lf 元",order[i].transport_pay);
 		if (order[i].transport_flag == 0)
 		{
@@ -344,12 +414,14 @@ void ShowReceipt(Customer customer[], Order order[], int order_number, int custo
 		{
 			printf("\n\t  (已开始配送)");
 		}
-		printf("\n\n总计\t  %.1lf 元",order[i].details.total_price + order[i].transport_pay);
-		printf("\n\n\n\t  %s",order[i].pay_date);
+		printf("\n\n总计\t  %.1lf 元",order[i].total_price + order[i].transport_pay);
+		printf("\n\n\n下单日期  %s",order[i].pay_date);
+		if (order[i].transport_flag == 1)
+		{
+			printf("\n发货日期  %s",order[i].transport_date);
+		}
 		printf("\n———————————————————————————————————————————");
 	}
-	printf("\n\t\t");
-	system("pause");
 }
 
 /*提供支付信息 让客户进行支付*/
@@ -358,6 +430,11 @@ void Pay(Order order[], int customer_orderNum[], int order_number)
 	int num;
 	
 	num = FindOrder(order, customer_orderNum, order_number);
+	if (num == -1)
+	{
+		printf("\n\t\t未找到该订单");
+		return;
+	}
 		
 	system("cls");
 	if (order[num].pay_flag == 1) /*确认是否已付过款， 若已付过则给出提示信息*/
@@ -367,7 +444,7 @@ void Pay(Order order[], int customer_orderNum[], int order_number)
 	else
 	{
 		printf("\n\t\t订单号:%d",order[num].number);
-		printf("\n\t\t你须支付共%.1lf 元",order[num].details.total_price + order[num].transport_pay);
+		printf("\n\t\t你须支付共%.1lf 元",order[num].total_price + order[num].transport_pay);
 		printf("\n\t\t其中运费为%.1lf 元",order[num].transport_pay);
 		
 		printf("\n\t\t请选择支付方式");
@@ -390,6 +467,10 @@ void Pay(Order order[], int customer_orderNum[], int order_number)
 			case 4:
 				return;
 			default:
+				if (option >3 || option<1)
+				{
+					return;
+				}
 				printf("\n\t\t正在跳转");
 				for (i=0; i<4; i++)
 				{
@@ -409,8 +490,6 @@ void Pay(Order order[], int customer_orderNum[], int order_number)
 		}
 	}
 
-	printf("\n\t\t");
-	system("pause");
 }
 
 /*修改客户的信息（昵称、姓名、地址等）*/
@@ -468,6 +547,8 @@ void ChangeCustomerInfor(Customer customer[], int flag)
 				return;
 			default: continue;
 		}
+		printf("\n\t\t");
+		system("pause");
 	}
 }
 
