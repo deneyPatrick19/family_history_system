@@ -23,10 +23,10 @@ typedef struct Order	//订单信息
 	int number; //订单号
 	char pay_date[30];  //下单日期
 	int customer_num;  //顾客代码
-	int transport_flag; // 是否发货标识
-	int pay_flag; //是否付款标识
+	int transport_flag; // 是否发货标识  1表示已开始配送 0表示未开始
+	int pay_flag; //是否付款标识  1表示已付款 0表示未付款
 	char transport_date[30]; //运输日期
-	double transport_pay; //运费
+	double transport_pay; //运费  
 	double amount; //数量
 	double total_price; //总金额
 	char information[100];

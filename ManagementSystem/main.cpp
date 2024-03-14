@@ -63,7 +63,7 @@ void DefineProduct(Product product[], Factory factory[])
 		product[i].category_num = product_num[i];
 		product[i].price = price[i];
 		strcpy(product[i].information, product_information[i]);
-		product[i].amount = 35;
+		product[i].amount = 50;
 		
 		if (i<7 && i>=0)
 		{
@@ -118,6 +118,11 @@ void ReadFile(Customer customer[], Order order[], Product product[], int custome
 	int i = 0;/*迭代器*/
 	
 	fp = fopen("customer.txt", "rb");/*打开文件*/
+	if (fp == NULL)
+	{
+		return;
+	}
+	
 	while (1)
 	{
 		int count = fread(&customer[i], sizeof(Customer), 1, fp);/*读取数据*/
@@ -131,9 +136,15 @@ void ReadFile(Customer customer[], Order order[], Product product[], int custome
 	}
 	fclose(fp);/*关闭文件*/
 	
+	
 	i = 0;
 	
 	fp = fopen("order.txt", "rb");
+	if (fp == NULL)
+	{
+		return;
+	}
+	
 	while (1)
 	{
 		int count = fread(&order[i], sizeof(Order), 1, fp);
@@ -147,7 +158,14 @@ void ReadFile(Customer customer[], Order order[], Product product[], int custome
 	}
 	fclose(fp);
 	
+	i = 0;
+	
 	fp = fopen("productAmount.txt", "rb");
+	if (fp == NULL)
+	{
+		return;
+	}
+	
 	while (1)
 	{
 		int count = fread(&product[i].amount, sizeof(int), 1, fp);

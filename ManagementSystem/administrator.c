@@ -143,7 +143,7 @@ void CheckTransportInfor(Order order[], Customer customer[], int customer_orderN
 	
 	for (i=0; i<customer_orderNum[1]; i++)
 	{
-		if (order[i].transport_flag == 0)
+		if (order[i].transport_flag == 0 && order[i].pay_flag == 1)
 		{
 			j = FindCustomer(customer, customer_orderNum, order[i].customer_num);	
 			printf("\n\t\t订单号:%d",order[i].number);

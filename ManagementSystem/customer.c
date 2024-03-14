@@ -115,8 +115,9 @@ void PurchaseMenu(Customer customer[], Order order[], int customer_orderNum[], P
 		printf("\n\t\t20 -年糕   -4.0 元");
 		printf("\n\t\t21 -豆芽   -1.5 元");
 		printf("\n\t\t22 -完成并返回上一界面");
+		printf("\n\t\t23 -直接返回上一界面");
 		printf("\n\t\t--------------------");
-		printf("\n\t\t请选择(1-22): "); 
+		printf("\n\t\t请选择(1-23): "); 
 		
 		int option;
 				
@@ -125,6 +126,8 @@ void PurchaseMenu(Customer customer[], Order order[], int customer_orderNum[], P
 		
 		switch (option)
 		{
+			case 23:
+				return;
 			case 22:
 				int choice;/*确认是否完成订单 完成则生成订单 否则可以继续追加商品*/
 				
@@ -250,7 +253,8 @@ char* AssignItems(Product product[], int PurchaseItems[], char* information)
 			break;
 		}
 		product_num = PurchaseItems[(j-1)*2]; /*获取购买商品的编号*/
-		if (product_num == 0) /*若值为0 则表明未购买 直接检索下一商品*/
+		int purchase_num = PurchaseItems[(j*2)-1];
+		if (product_num == 0 || purchase_num == 0) /*若值为0 则表明未购买 直接检索下一商品*/
 		{
 			j++;
 			continue;
@@ -317,6 +321,7 @@ void TraversalCustomer(Customer customer[], int customer_orderNum[])
 		printf("\n\t\t地址:%s",customer[i].address);
 		printf("\n\t\t邮编:%s",customer[i].postcode);
 		printf("\n\t\t电话:%s",customer[i].phone);
+		printf("\n\t\t");
 	}
 	printf("\n\t\t");
 	system("pause");
