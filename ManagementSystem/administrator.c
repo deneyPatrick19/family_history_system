@@ -1,43 +1,42 @@
-#include"header.h"
+#include "nodeheader.h"
 #include<conio.h>
-/*管理员模块的函数及菜单界面*/
 
-void AdministratorMenu(Customer customer[], Order order[], Product product[], Factory factory[], int customer_orderNum[])
-{
-	/* 输入管理员密码方可进入 密码初始为123456  输入5次不成功返回主菜单*/
+void AdministratorMenu(CustomerNode* CusNodeHead, OrderNode* OrNodeHead, ProductNode* ProNodeHead, Factory* factory)
+{	
+/* 输入管理员密码方可进入 密码初始为123456  输入5次不成功返回主菜单*/
 	char password[7] = "123456";
 	int num = 0; /*密码输入次数*/
 	int flag = 0; /*密码判断标志位*/
 	
 	while (1)
 	{
-		printf("\n\t\t请输入管理员密码:");
+		printf("\n请输入管理员密码:");
 		flag = EnterPassword(password);  /*调用输入密码函数*/
 		num++;
 		
 		if (flag == 1) /*密码正确*/
 		{
-			printf("\n\t\t密码正确!");
-			printf("\n\t\t欢迎进入管理员界面");  /*管理员菜单 选择不同功能*/
-			printf("\n\t\t");
+			printf("\n密码正确!");
+			printf("\n欢迎进入管理员界面\n");  /*管理员菜单 选择不同功能*/
 			system("pause");
 			while (1)
 			{
 				system("cls");
-				printf("\n\t\t--------------------");
-				printf("\n\t\t01 - 确认用户订单");
-				printf("\n\t\t02 - 确认发货信息");
-				printf("\n\t\t03 - 删除订单");
-				printf("\n\t\t04 - 库存信息查看");
-				printf("\n\t\t05 - 联系生产厂家");
-				printf("\n\t\t06 - 生成已完成订单列表");
-				printf("\n\t\t07 - 生成未付款订单列表");
-				printf("\n\t\t08 - 生成未发货订单列表");
-				printf("\n\t\t09 - 返回上一级");
-				printf("\n\t\t--------------------");
-				printf("\n\t\t   请选择(1-9): ");
+				printf("\n--------------------");
+				printf("\n01 - 确认用户订单");
+				printf("\n02 - 确认发货信息");
+				printf("\n03 - 删除订单");
+				printf("\n04 - 库存信息查看");
+				printf("\n05 - 联系生产厂家");
+				printf("\n06 - 生成已完成订单列表");
+				printf("\n07 - 生成未付款订单列表");
+				printf("\n08 - 生成未发货订单列表");
+				printf("\n09 - 返回上一级");
+				printf("\n--------------------");
+				printf("\n   请选择(1-9): ");
 				
 				int option;
+				int OrderNumber;/*订单号 用于查找、支付等功能*/
 				  
 				fflush(stdin); 
 				scanf("%d",&option);
@@ -45,83 +44,114 @@ void AdministratorMenu(Customer customer[], Order order[], Product product[], Fa
 				switch (option)
 				{
 					case 1:
-						TraversalOrder(order, customer_orderNum);
+						/*显示所有的订单 若没有订单返回-1 显示提示信息*/
+						if (TraversalOrder(OrNodeHead, CusNodeHead) == -1)
+						{
+							printf("\n没有任何订单");
+						}
 						break;
 					case 2:
-						CheckTransportInfor(order, customer, customer_orderNum);
+						/*对未配送订单进行是否发货操作 返回-1则没有可进行操作的订单*/
+						if (CheckTransportInformation(OrNodeHead, CusNodeHead) == -1)
+						{
+							printf("\n没有可进行操作的订单");
+						}
 						break;
 					case 3:
-						int var_number;
-						int num;
-						
-						printf("\n\t\t请输入要删除的订单的订单号:");
+						/*输入订单号删除订单*/
+						printf("\n请输入要删除的订单的订单号(0 退出功能):");
 						
 						fflush(stdin);
-						scanf("%d",&var_number);/*输入要删除的订单号*/
+						scanf("%d",&OrderNumber);/*输入要删除的订单号*/
 						
-						num = DeleteOrder(order, customer_orderNum, var_number);/*删除订单函数*/
-						if (num == -1)
+						/*若输入0返回上一界面  否则进行删除*/
+						if (OrderNumber == 0)
 						{
-							printf("\n\t\t删除失败\n\t\t");
+							break;
 						}
 						else
 						{
-							printf("\n\t\t删除成功\n\t\t");
+							/*删除订单函数*/
+							if (DeleteOrderByAdministrator(OrNodeHead, ProNodeHead, OrderNumber) == -1)
+							{
+								printf("\n删除失败");
+							}
 						}
-						system("pause");
+						
 						break;
 					case 4:
-						ShowProduct(product);
+						/*显示所有商品信息及库存量*/
+						ShowProduct(ProNodeHead);
 						break;
 					case 5:
-						ConnectFactory(factory, product);
+						/*联系生产厂家对商品进行补货*/
+						ConnectFactory(ProNodeHead, factory);
 						break;
 					case 6:
-						printf("\n\t\t已完成订单\n");
-						ShowCompleteOrder(order, customer_orderNum);
+						/*显示所有已经付款及配送的订单*/
+						printf("\n已完成订单:\n");
+						
+						if (ShowCompleteOrder(OrNodeHead, CusNodeHead) == -1)
+						{
+							printf("\n没有符合条件的订单");
+						}
 						break;
 					case 7:
-						printf("\n\t\t未付款订单\n");
-						ShowNotPay(order, customer_orderNum);
+						/*显示没有付款的订单*/
+						printf("\n未付款订单:\n");
+						
+						if (ShowNotPay(OrNodeHead, CusNodeHead) == -1)
+						{
+							printf("\n没有符合条件的订单");
+						}
 						break;
 					case 8:
-						printf("\n\t\t未发货订单\n");
-						ShowNotTransport(order, customer, customer_orderNum);
+						/*显示没有开始配送的订单*/
+						printf("\n未发货订单:\n");
+						
+						if (ShowNotTransport(OrNodeHead, CusNodeHead) == -1)
+						{
+							printf("\n没有符合条件的订单");
+						}
 						break;
 					case 9:
 						return;
 					default: continue;
 				}
+				printf("\n");
+				system("pause");
 			}
 				
 		}
 		else if (flag == -1) /*密码错误*/
 		{
-			if (num == 5)
+			if (num == 5)/*5次输错密码*/
 			{
-				printf("\n\t\t您已输错5次密码，将自动为你退出\n\t\t");
+				printf("\n您已输错5次密码，将自动为你退出\n");
 				system("pause");
 				
 				return;
 			}
-			
-			printf("\n\t\t密码错误，请重新输入");
+			/*提示重新输入*/
+			printf("\n密码错误，请重新输入");
 		}	
 	}
 }
 
 /*输入密码函数*/
-int EnterPassword(char password[]) 
+int EnterPassword(char* password) 
 {
-	char key[7];
-	int i;
+	char key[7];/*储存密码字符串*/
+	int i;/*迭代器*/
 	
+	/*getch将输入字符隐藏 再输出*号 以达密码的效果*/
 	for (i=0; i<6; i++)
 	{
 		key[i] = getch();
 		printf("*");
 	}
 	
+	/*判断是否比较成功 成功返回1 失败返回-1*/
 	if (strcmp(key, password) == 0)
 	{
 		return 1;
@@ -132,271 +162,390 @@ int EnterPassword(char password[])
 	}
 }
 
-/*对订单进行配送处理*/
-void CheckTransportInfor(Order order[], Customer customer[], int customer_orderNum[])
+/*遍历显示订单链表所有订单*/
+int TraversalOrder(OrderNode* OrNodeHead, CustomerNode* CusNodeHead)
 {
-	int i;
-	int j;
-	int option;
-	char str_time[30] = {0};/*存储时间的字符串*/
-	char *p_time; /*时间指针*/
+	OrderNode* p = OrNodeHead->next;
+	CustomerNode* p_customer = NULL;
+	int num = 0;
 	
-	for (i=0; i<customer_orderNum[1]; i++)
+	while (p != NULL)
 	{
-		if (order[i].transport_flag == 0 && order[i].pay_flag == 1)
+		/*显示订单信息*/
+		p_customer = FindCustomer(CusNodeHead, p->data.customer_num);
+		printf("\n订单号:%d",p->data.number);
+		printf("\n顾客代码:%d",p->data.customer_num);
+		printf("\n顾客姓名:%s",p_customer->data.name);
+		printf("\n订单费用:%.1lf 元",p->data.total_price);
+		printf("\n运费:%.1lf 元",p->data.transport_pay);
+		printf("\n总费用:%.1lf 元",p->data.total_price + p->data.transport_pay);
+		printf("\n详细信息:%s",p->data.information);
+		printf("\n数量:%.0lf",p->data.amount);
+		printf("\n下单日期:%s",p->data.pay_date);
+		/*若已经开始配送 显示配送日期*/
+		if (p->data.transport_flag == 1)
 		{
-			j = FindCustomer(customer, customer_orderNum, order[i].customer_num);	
-			printf("\n\t\t订单号:%d",order[i].number);
-			printf("\n\t\t顾客代码:%d",order[i].customer_num);
-			printf("\n\t\t顾客姓名:%s",customer[j].name);
-			printf("\n\t\t详细信息:%s",order[i].information);
-			printf("\n\t\t配送地址:%s",customer[j].address);
-			printf("\n\t\t联系电话:%s",customer[j].phone);
-			printf("\n\n\t\t下单日期:%s",order[i].pay_date);
-			
-			printf("\n\t\t是否开始进行配送");
-			printf("\n\t\t1 - 是\t2 - 否");
-			printf("\n\t\t请输入你的选择:");
-			fflush(stdin);
-			scanf("%d",&option);
-			if (option == 1)
-			{
-				order[i].transport_flag = 1;
-				p_time = GetTime(str_time);
-				strcpy(order[i].transport_date, p_time);
-				printf("\n\t\t操作完成 已开始配送");
-			}
-			else
-			{
-				continue;
-			}
+			printf("\n配送日期:%s",p->data.transport_date);
 		}
+		
+		p = p->next;
+		num++;
 	}
-	printf("\n\t\t");
-	system("pause");
-}
-
-/*删除对应订单号的订单*/
-int DeleteOrder(Order order[], int customer_orderNum[], int var_number)
-{
-	int i;
-	int j;
 	
-	i = FindOrder(order, customer_orderNum, var_number);
-	if (i == -1)
+	if (num == 0)
 	{
 		return -1;
 	}
+	return 1;
+}
+
+/*对未配送订单进行是否开始配送操作*/
+int CheckTransportInformation(OrderNode* OrNodeHead, CustomerNode* CusNodeHead)
+{
+	char str_time[30] = {0};/*存储时间的字符串*/
+	char *p_time; 			/*时间指针*/
 	
-	if (i != customer_orderNum[1] - 1)
+	OrderNode* p_order = OrNodeHead->next;
+	CustomerNode* p_customer = NULL;
+	/*选项*/
+	int option;
+	int num = 0;
+	
+	/*遍历订单链表*/
+	while (p_order !=NULL)
 	{
-		for (j=i; j<customer_orderNum[1]; j++)
+		/*若已经付款但尚未开始配送 显示订单信息*/
+		if (p_order->data.transport_flag == 0 && p_order->data.pay_flag == 1)
 		{
-			order[j] = order[j+1];
+			num++;
+			/*查找顾客*/
+			p_customer = FindCustomer(CusNodeHead, p_order->data.customer_num);	
+			printf("\n订单号:%d",p_order->data.number);
+			printf("\n顾客代码:%d",p_order->data.customer_num);
+			printf("\n顾客姓名:%s",p_customer->data.name);
+			printf("\n详细信息:%s",p_order->data.information);
+			printf("\n配送地址:%s",p_customer->data.address);
+			printf("\n联系电话:%s",p_customer->data.phone);
+			printf("\n\n下单日期:%s",p_order->data.pay_date);
+			
+			/*进行配送选择*/
+			printf("\n是否开始进行配送");
+			printf("\n1 - 是\t2 - 否");
+			printf("\n0 - 退出");/*输入 0 退出*/
+			printf("\n请输入你的选择:");
+			
+			fflush(stdin);
+			scanf("%d",&option);
+			
+			if (option == 1)
+			{
+				/*将订单设为已开始配送*/
+				p_order->data.transport_flag = 1;
+				
+				/*获取开始配送时间并赋值给订单*/
+				p_time = GetTime(str_time);
+				strcpy(p_order->data.transport_date, p_time);
+				
+				printf("\n操作完成 已开始配送");
+				
+				return 0;
+			}
+			else if (option == 0)/*退出*/
+			{
+				return 0;
+			}
+			else
+			{
+				p_order = p_order->next;
+				continue;
+			}
 		}
+		
+		p_order = p_order->next;
 	}
-	customer_orderNum[1]--;
+	
+	if (num == 0)
+	{
+		return -1;
+	}
 	return 0;
 }
 
-/*显示所有商品信息及其库存量*/
-void ShowProduct(Product product[])
+/*删除特定订单号的订单*/
+int DeleteOrderByAdministrator(OrderNode* OrNodeHead, ProductNode* ProNodeHead, int number)
 {
-	int i;
+	OrderNode* p =OrNodeHead;
+	OrderNode* pfollow = p->next;/*跟随指针*/
 	
-	printf("\n\t\t编号  厂家编号  说明    单价    库存量");
-	for (i=0; i<21; i++)
+	while (pfollow != NULL)
 	{
-		printf("\n\t\t%-6d%-10s%-8s%.1lf 元  %-3d 份", product[i].category_num, product[i].factory_num
-											, product[i].information, product[i].price, product[i].amount);
-	}	
-	printf("\n\t\t");
-	system("pause");
+		if (p->next->data.number == number)/*当下一个节点的订单号相同时*/
+		{
+			p->next = pfollow->next;/*连接要删除节点的下一节点*/
+			
+			printf("\n删除成功");
+			
+			free(pfollow);/*释放要删除的节点的堆空间*/
+
+			return 1;
+		}
+		
+		/*两个指针移动*/
+		p = p->next;
+		pfollow = pfollow->next;
+	}
+	
+	return -1;
 }
 
-/*联系生产厂家并进货缺货的商品*/
-void ConnectFactory(Factory factory[], Product product[])
+/*显示所有商品具体信息及其库存量*/
+void ShowProduct(ProductNode* ProNodeHead)
+{
+	ProductNode* p = ProNodeHead->next;
+	
+	printf("\n编号  厂家编号  说明    单价    库存量");
+	
+	while (p != NULL)
+	{
+		printf("\n%-6d%-10s%-8s%.1lf 元  %-3d 份", p->data.category_num, p->data.factory_num
+											, p->data.information, p->data.price, p->data.amount);
+		p = p->next;
+	}
+}
+
+/*联系生产厂家对商品进行补货处理*/
+void ConnectFactory(ProductNode* ProNodeHead, Factory* factory)
 {
 	int i;/*迭代器*/
-	int j;
 	int option;/*商品选择选项*/
 	int purchase_num;/*进货数量*/
-	int num;/*厂家选择xuanxiang*/
+	int choice;/*厂家选择选项*/
+	
+	ProductNode* p = ProNodeHead->next;
+	ProductNode* p_product = NULL;
 	
 	while (1)
 	{
 		system("cls");
-		printf("\n\t\t生产厂家:");
+		p = ProNodeHead->next;
+		printf("\n生产厂家:");
 		/*打印厂家信息*/
 		for (i=0; i<3;i++)
 		{
-			printf("\n\t\t%d    %s  %s",i+1, factory[i].num, factory[i].name);
+			printf("\n%d    %s  %s",i+1, factory[i].num, factory[i].name);
 		}
 		
-		printf("\n\t\t0    退出");
-		printf("\n\t\t请输入需要联系的厂家(0-3):");
+		printf("\n0    退出");
+		printf("\n请输入需要联系的厂家(0-3):");
 		
+		/*选择厂家*/
 		fflush(stdin);
-		scanf("%d",&num);
+		scanf("%d",&choice);
 		
-		switch (num)
+		/*根据选择显示各厂家的所有商品并选择商品进货*/
+		switch (choice)
 		{
+			case 0:/*退出*/
+				return;
 			case 1:
-				printf("\n\t\t编号  商品信息  库存量");
-				for (j=0; j<7; j++)
+				/*显示所有商品*/
+				printf("\n编号  商品信息  库存量");
+				for (i=0; i<7; i++)
 				{
-					printf("\n\t\t%-06d%-6s    %-3d",product[j].category_num, product[j].information, product[j].amount);
+					printf("\n%-06d%-6s    %-3d",p->data.category_num, p->data.information, p->data.amount);
+					p = p->next;
 				}
 				
-				printf("\n\t\t请输入要进货的商品(输入0退出):");
+				printf("\n请输入要进货的商品(输入0退出):");
 				
+				/*选择要进货的商品*/
 				fflush(stdin);
 				scanf("%d",&option);
-				
-				printf("\n\t\t请输入要购入的数量:");
-				
-				fflush(stdin);
-				scanf("%d",&purchase_num);
-				
-				if (option>=1 && option<=7)
+								
+				if (option>=1 && option<=7)/*若输入不为0 */
 				{
-					product[option -1].amount += purchase_num;
-				}
-				else
-				{
-					break;
+					p_product = FindProduct(ProNodeHead, option);/*寻找商品在链表的节点*/
+				
+					printf("\n请输入要购入的数量:");
+					
+					/*输入要进货的数量*/
+					fflush(stdin);
+					scanf("%d",&purchase_num);
+					
+					/*库存量相应增加*/
+					p_product->data.amount += purchase_num;
 				}
 				break;
 			case 2:
-				printf("\n\t\t编号  商品信息  库存量");
-				for (j=7; j<14; j++)
+				printf("\n编号  商品信息  库存量");
+				for (i=0; i<7; i++)
 				{
-					printf("\n\t\t%-06d%-6s    %-3d",product[j].category_num, product[j].information, product[j].amount);
+					printf("\n%-06d%-6s    %-3d",p->data.category_num, p->data.information, p->data.amount);
+					p = p->next;
 				}
 				
-				printf("\n\t\t请输入要进货的商品(输入0退出):");
+				printf("\n请输入要进货的商品(输入0退出):");
 				
 				fflush(stdin);
 				scanf("%d",&option);
-				
-				printf("\n\t\t请输入要购入的数量:");
-				
-				fflush(stdin);
-				scanf("%d",&purchase_num);
 				
 				if (option>=8 && option<=14)
 				{
-					product[option -1].amount += purchase_num;
-				}
-				else
-				{
-					break;
+					p_product = FindProduct(ProNodeHead, option);
+				
+					printf("\n请输入要购入的数量:");
+					
+					fflush(stdin);
+					scanf("%d",&purchase_num);
+					
+					p_product->data.amount += purchase_num;
 				}
 				break;
 			case 3:
-				printf("\n\t\t编号  商品信息  库存量");
-				for (j=14; j<21; j++)
+				printf("\n编号  商品信息  库存量");
+				for (i=0; i<7; i++)
 				{
-					printf("\n\t\t%-06d%-6s    %-3d",product[j].category_num, product[j].information, product[j].amount);
+					printf("\n%-06d%-6s    %-3d",p->data.category_num, p->data.information, p->data.amount);
+					p = p->next;
 				}
 				
-				printf("\n\t\t请输入要进货的商品(输入0退出):");
+				printf("\n请输入要进货的商品(输入0退出):");
 				
 				fflush(stdin);
 				scanf("%d",&option);
-				
-				printf("\n\t\t请输入要购入的数量:");
-				
-				fflush(stdin);
-				scanf("%d",&purchase_num);
-				
+								
 				if (option>=15 && option<=21)
 				{
-					product[option -1].amount += purchase_num;
-				}
-				else
-				{
-					break;
+					p_product = FindProduct(ProNodeHead, option);
+				
+					printf("\n请输入要购入的数量:");
+					
+					fflush(stdin);
+					scanf("%d",&purchase_num);
+					
+					p_product->data.amount += purchase_num;
 				}
 				break;
-			case 0:
-				return;
 		}
 	}
-		
-	printf("\n\t\t");
-	system("pause");
 }
 
-/*显示已付款及已发货的订单*/
-void ShowCompleteOrder(Order order[], int customer_orderNum[])
+/*显示所有已经付款及配送的订单*/
+int ShowCompleteOrder(OrderNode* OrNodeHead, CustomerNode* CusNodeHead)
 {
-	int i;
+	OrderNode* p = OrNodeHead->next;
+	CustomerNode* p_customer = NULL;
+	int num = 0;/*统计数*/
 	
-	for (i=0; i<customer_orderNum[1]; i++)
+	/*遍历链表*/
+	while (p != NULL)
 	{
-		if (order[i].pay_flag == 1 && order[i].transport_flag == 1)
+		p_customer = FindCustomer(CusNodeHead, p->data.customer_num);
+		if (p->data.pay_flag == 1 && p->data.transport_flag == 1)/*订单已经付款及开始配送*/
 		{
-			printf("\n\t\t订单号:%d",order[i].number);
-			printf("\n\t\t顾客代码:%d",order[i].customer_num);
-			printf("\n\t\t运费:%.1lf 元",order[i].transport_pay);
-			printf("\n\t\t详细信息:%s",order[i].information);
-			printf("\n\t\t数量:%.1lf",order[i].amount);
-			printf("\n\t\t总金额:%.1lf 元",order[i].total_price + order[i].transport_pay);
-			printf("\n\t\t下单日期:%s",order[i].pay_date);
-			printf("\n\t\t配送日期:%s",order[i].transport_date);
-		}
-	}
-	printf("\n\t\t");
-	system("pause");
-}
-
-/*显示未付款的订单*/
-void ShowNotPay(Order order[], int customer_orderNum[])
-{
-	int i;
-	
-	for (i=0; i<customer_orderNum[1]; i++)
-	{
-		if (order[i].pay_flag == 0)
-		{
-			printf("\n\t\t订单号:%d",order[i].number);
-			printf("\n\t\t顾客代码:%d",order[i].customer_num);
-			printf("\n\t\t运费:%.1lf 元",order[i].transport_pay);
-			printf("\n\t\t详细信息:%s",order[i].information);
-			printf("\n\t\t数量:%.1lf",order[i].amount);
-			printf("\n\t\t总金额:%.1lf 元",order[i].total_price + order[i].transport_pay);
-			printf("\n\t\t下单日期:%s",order[i].pay_date);
-			if (order[i].transport_flag == 1)
+			p_customer = FindCustomer(CusNodeHead, p->data.customer_num);
+			printf("\n订单号:%d",p->data.number);
+			printf("\n顾客代码:%d",p->data.customer_num);
+			printf("\n顾客姓名:%s",p_customer->data.name);
+			printf("\n订单费用:%.1lf 元",p->data.total_price);
+			printf("\n运费:%.1lf 元",p->data.transport_pay);
+			printf("\n详细信息:%s",p->data.information);
+			printf("\n数量:%.0lf",p->data.amount);
+			printf("\n总金额:%.1lf 元",p->data.total_price + p->data.transport_pay);
+			printf("\n下单日期:%s",p->data.pay_date);
+			
+			if (p->data.transport_flag == 1)
 			{
-			printf("\n\t\t发货日期:%s",order[i].transport_date);
+				printf("\n配送日期:%s",p->data.transport_date);
 			}
+			
+			num++;/*统计数加1*/
 		}
+		
+		p = p->next;
 	}
-	printf("\n\t\t");
-	system("pause");
+	
+	if (num == 0)/*若统计数为0 则没有符合条件的订单 给出提示信息*/
+	{
+		return -1;
+	}
+	return 1;
 }
 
-/*显示未开始配送的订单*/
-void ShowNotTransport(Order order[], Customer customer[], int customer_orderNum[])
+/*显示没有付款的订单*/
+int ShowNotPay(OrderNode* OrNodeHead, CustomerNode* CusNodeHead)
 {
-	int i;
-	int j;
+	OrderNode* p = OrNodeHead->next;
+	CustomerNode* p_customer = NULL;
+	int num = 0;
 	
-	for (i=0; i<customer_orderNum[1]; i++)
+	while (p != NULL)
 	{
-		if (order[i].transport_flag == 0)
+		if (p->data.pay_flag == 0)
 		{
-			printf("\n\t\t订单号:%d",order[i].number);
-			printf("\n\t\t顾客代码:%d",order[i].customer_num);
-			printf("\n\t\t运费:%.1lf 元",order[i].transport_pay);
-			printf("\n\t\t详细信息:%s",order[i].information);
-			printf("\n\t\t数量:%.1lf",order[i].amount);
-			printf("\n\t\t总金额:%.1lf 元",order[i].total_price + order[i].transport_pay);
-			printf("\n\t\t下单日期:%s",order[i].pay_date);
+			p_customer = FindCustomer(CusNodeHead, p->data.customer_num);
+			printf("\n订单号:%d",p->data.number);
+			printf("\n顾客代码:%d",p->data.customer_num);
+			printf("\n顾客姓名:%s",p_customer->data.name);
+			printf("\n订单费用:%.1lf 元",p->data.total_price);
+			printf("\n运费:%.1lf 元",p->data.transport_pay);
+			printf("\n详细信息:%s",p->data.information);
+			printf("\n数量:%.0lf",p->data.amount);
+			printf("\n总金额:%.1lf 元",p->data.total_price + p->data.transport_pay);
+			printf("\n下单日期:%s",p->data.pay_date);
+			
+			if (p->data.transport_flag == 1)
+			{
+				printf("\n配送日期:%s",p->data.transport_date);
+			}
+			
+			num++;
 		}
+		
+		p = p->next;
 	}
-	printf("\n\t\t");
-	system("pause");
+	if (num == 0)
+	{
+		return -1;
+	}
+	return 1;
+}
+
+/*显示没有开始配送的订单*/
+int ShowNotTransport(OrderNode* OrNodeHead, CustomerNode* CusNodeHead)
+{
+	OrderNode* p = OrNodeHead->next;
+	CustomerNode* p_customer = NULL;
+	int num = 0;
 	
+	while (p != NULL)
+	{
+		if (p->data.transport_flag == 0)
+		{
+			p_customer = FindCustomer(CusNodeHead, p->data.customer_num);
+			printf("\n订单号:%d",p->data.number);
+			printf("\n顾客代码:%d",p->data.customer_num);
+			printf("\n顾客姓名:%s",p_customer->data.name);
+			printf("\n订单费用:%.1lf 元",p->data.total_price);
+			printf("\n运费:%.1lf 元",p->data.transport_pay);
+			printf("\n详细信息:%s",p->data.information);
+			printf("\n数量:%.0lf",p->data.amount);
+			printf("\n总金额:%.1lf 元",p->data.total_price + p->data.transport_pay);
+			printf("\n下单日期:%s",p->data.pay_date);
+			
+			if (p->data.transport_flag == 1)
+			{
+				printf("\n配送日期:%s",p->data.transport_date);
+			}
+			
+			num++;
+		}
+		
+		p = p->next;
+	}
+	if (num == 0)
+	{
+		return -1;
+	}
+	return 1;
 }

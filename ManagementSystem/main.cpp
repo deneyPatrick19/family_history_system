@@ -1,182 +1,297 @@
-#include"header.h"
-#define CAPACITY 500
+#include "nodeheader.h"
+/* run this program using the console pauser or add your own getch, system("pause") or input loop */
 
-int main()
+int main() 
 {
-	Customer customer[CAPACITY];
-	Order order[CAPACITY];
-	Product product[21];
-	Factory factory[3] = {{"180310","杨氏食品集团有限公司"},{"203397","国盛食品集团有限公司"},{"104534","家百乐食品集团有限公司"}};
-	int customer_orderNum[3] = {0}; /*[0]存储客户数量，[1]存储订单数量*/
-	srand(time(NULL));/*设置随机数种子*/
+	/*在堆区申请空间 分别创建顾客、订单和商品的链表头节点*/
+	CustomerNode* CusNodeHead = (CustomerNode*)malloc(sizeof(CustomerNode));
+	OrderNode* OrNodeHead = (OrderNode*)malloc(sizeof(OrderNode));
+	ProductNode* ProNodeHead = (ProductNode*)malloc(sizeof(ProductNode));
 	
-	DefineProduct(product, factory);/*商品定义函数*/
-	ReadFile(customer, order, product, customer_orderNum);
-	/*主菜单  选择管理员模式或顾客订餐模式*/
-	while (1)
+	/*头结点指针指向空*/
+	CusNodeHead->next = NULL;
+	OrNodeHead->next = NULL;
+	ProNodeHead->next = NULL;
+	
+	/*定义商品的生产厂商*/
+	Factory factory[3] = {{"180310","杨氏食品集团有限公司"},
+						{"203397","国盛食品集团有限公司"},
+						{"104534","家百乐食品集团有限公司"}};
+
+	srand(time(NULL));/*设置时间种子*/
+
+	/*对商品链表进行增加及赋值*/
+	ProductDefine(ProNodeHead, factory);
+	
+	/*从文件中读取顾客、订单和商品信息*/
+	ReadFile(CusNodeHead, OrNodeHead, ProNodeHead);
+	
+	/*主菜单  选择管理员界面或顾客界面*/
+	while (1) 
 	{
-		system("cls");
-		printf("\n\t\t欢迎来到杨国福麻辣烫管理系统");
-		printf("\n\t\t--------------------");
-		printf("\n\t\t01 - 我是顾客");
-		printf("\n\t\t02 - 我是管理员");
-		printf("\n\t\t03 - 退出系统");
-		printf("\n\t\t--------------------");
-		printf("\n\t\t   请选择(1-3): ");  
-		int option;
-		
-		fflush(stdin);
+		system("cls"); /*清屏*/
+		printf("\n欢迎来到杨国福麻辣烫管理系统");
+		printf("\n--------------------");
+		printf("\n01 - 我是顾客");
+		printf("\n02 - 我是管理员");
+		printf("\n03 - 退出系统");
+		printf("\n--------------------");
+		printf("\n   请选择(1-3): ");
+		int option;/*选项*/
+
+		fflush(stdin);/*清除输入缓存*/
 		scanf("%d",&option);/*输入选择*/
-		
-		switch (option)
+
+		switch (option) 
 		{
 			case 1:
-				CustomerMenu(customer, order, product, customer_orderNum);  /*顾客菜单*/
-				TraversalCustomer(customer, customer_orderNum);
-				TraversalOrder(order, customer_orderNum);
+				CustomerMenu(CusNodeHead, OrNodeHead, ProNodeHead);  /*顾客菜单*/
 				break;
 			case 2:
-				AdministratorMenu(customer, order, product, factory, customer_orderNum);  /*管理员菜单*/
+				AdministratorMenu(CusNodeHead, OrNodeHead, ProNodeHead, factory); /*管理员菜单*/
 				break;
 			case 3:
-				WriteFile(customer, order, product, customer_orderNum);
+				WriteFile(CusNodeHead, OrNodeHead, ProNodeHead);/*将顾客、订单和商品信息写入硬盘文件*/
+				ReleaseNode(CusNodeHead, OrNodeHead, ProNodeHead);  /*释放堆区节点*/
 				return 0;  /*退出系统*/
-			default: continue;
+			default:
+				continue;
 		}
-		printf("\n\t\t");
 		system("pause");
 	}
 }
 
-/*对商品进行赋值及定义*/
-void DefineProduct(Product product[], Factory factory[])
+/*对商品链表进行增加及赋值*/
+void ProductDefine(ProductNode* ProNodeHead, Factory* factory)
 {
-	/*定义商品的编号、厂家编号、说明及单价*/
-	int product_num[21] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21}; 
-	double price[21] = {3.5, 1.5, 4.0, 2.0, 3.0, 2.5, 4.0, 2.5, 3.0, 3.5, 5.0, 1.5, 4.5, 3.5, 3.5, 3.0, 4.0, 2.5, 3.5, 4.0, 1.5};
-	char product_information[22][7] = {"牛肉","生菜","羊肉","豆腐","鱼丸","土豆片","鸭血","冬瓜","金针菇","鹌鹑蛋","方便面",
-										"油条","魔芋丝","宽粉","可乐","橙汁","啤酒","花菜","山药","年糕","豆芽"};
 	int i;/*迭代器*/
+	ProductNode* p = ProNodeHead;
 	
-	for (i=0; i<21; i++) /*对商品各项数据类型进行赋值*/
+	/*增加商品节点*/
+	for (i=0; i<21; i++)
 	{
-		product[i].category_num = product_num[i];
-		product[i].price = price[i];
-		strcpy(product[i].information, product_information[i]);
-		product[i].amount = 50;
+		ProductNode* pnew = (ProductNode*)malloc(sizeof(ProductNode)); /*堆区申请空间*/
+		pnew->next = NULL;
+		p->next = pnew;			/*节点连接*/
+		p = pnew;
+	}
+	
+	p = ProNodeHead->next; /*将指针移到第一个含数据的节点*/
+	
+	/*21个 商品的价格及商品信息（名称）定义*/
+	double price[21] = {3.5, 1.5, 4.0, 2.0, 3.0, 2.5, 4.0,
+	 					2.5, 3.0, 3.5, 5.0, 1.5, 4.5, 3.5,
+	 					3.5, 3.0, 4.0, 2.5, 3.5, 4.0, 1.5};
+	char ProductInformation[22][7] = {"牛肉","生菜","羊肉","豆腐","鱼丸","土豆片","鸭血",
+										"冬瓜","金针菇","鹌鹑蛋","方便面","油条","魔芋丝","宽粉",
+										"可乐","橙汁","啤酒","花菜","山药","年糕","豆芽"};
+								
+	/*将商品信息赋值到链表中*/		
+	for (i=0; i<21; i++)
+	{
+		p->data.category_num = i+1;  /*商品编号*/
+		p->data.price = price[i];    /*价格*/
+		strcpy(p->data.information, ProductInformation[i]);  /*商品信息*/
+		p->data.amount = 40;  /*默认初始库存量为40份*/
 		
+		
+		/*生产厂家赋值 1-7为第一家厂家  8-14第二家  15-21第三家*/
 		if (i<7 && i>=0)
 		{
-			strcpy(product[i].factory_num, factory[0].num);
+			strcpy(p->data.factory_num, factory[0].num);
 		}
 		else if (i>=7 && i<14)
 		{
-			strcpy(product[i].factory_num, factory[1].num);
+			strcpy(p->data.factory_num, factory[1].num);
 		}
 		else
 		{
-			strcpy(product[i].factory_num, factory[2].num);
+			strcpy(p->data.factory_num, factory[2].num);
 		}
+		
+		p = p->next;  /*指针移动*/
 	}
+	
 }
 
-/*将客户信息及订单存储在硬盘上*/
-void WriteFile(Customer customer[], Order order[], Product product[], int customer_orderNum[])
+/*获取现在的时间*/
+char* GetTime(char* str_time) 
 {
-	FILE* fp = NULL;/*定义文件指针*/
-	int i;/*迭代器*/
+	int sec = 0;
+	time_t* clock;
 	
-	/*客户*/
-	fp = fopen("customer.txt", "wb");/*打开文件*/
-	for (i=0; i< customer_orderNum[0]; i++)
+	//获取时间，保存到time_t结构体中。在time的返回值(sec)里面有全部秒数
+    sec = time(clock);
+    strcpy(str_time, ctime(clock)); //将time_t类型的结构体中的时间，按照一定格式保存成字符串，
+	
+	return str_time; /*返回时间字符串*/
+}
+
+/*将顾客、订单和商品信息写入硬盘文件*/
+void WriteFile(CustomerNode* CusNodeHead, OrderNode* OrNodeHead, ProductNode* ProNodeHead)
+{
+	FILE* fp = NULL; /*文件指针*/
+	
+	CustomerNode* p_customer = CusNodeHead->next;
+	OrderNode* p_order = OrNodeHead->next;
+	ProductNode* p_product = ProNodeHead->next;
+	
+	/*顾客*/
+	/*打开文件*/
+	fp = fopen("customer.txt", "wb"); 
+	while (p_customer != NULL)
 	{
-		fwrite(&customer[i], sizeof(Customer), 1, fp);/*写入数据*/
+		fwrite(&(p_customer->data), sizeof(Customer), 1, fp); /*写入文件*/
+		p_customer = p_customer->next; 
+	}
+	fclose(fp); /*关闭文件*/
+	
+	/*订单*/
+	fp = fopen("order.txt", "wb");
+	while (p_order != NULL)
+	{
+		fwrite(&(p_order->data), sizeof(Order), 1, fp);
+		p_order = p_order->next;
+	}
+	fclose(fp);
+	
+	/*商品*/
+	fp = fopen("product.txt", "wb");
+	while (p_product != NULL)
+	{
+		fwrite(&(p_product->data), sizeof(Product), 1 , fp);
+		p_product = p_product->next;
+	}
+	fclose(fp);
+	
+}
+
+/*从文件中读取顾客、订单和商品信息*/
+void ReadFile(CustomerNode* CusNodeHead, OrderNode* OrNodeHead, ProductNode* ProNodeHead)
+{
+	FILE* fp = NULL; /*文件指针*/
+	
+	CustomerNode* p_customer = CusNodeHead;
+	OrderNode* p_order = OrNodeHead;
+	ProductNode* p_product = ProNodeHead;
+	
+	/*顾客*/
+	fp = fopen("customer.txt", "rb");/*打开文件*/
+	
+	if (fp == NULL)/*若返回值为NULL 则文件不存在*/
+	{
+		printf("\n文件不存在");
+	}
+	else
+	{
+		while (1)
+		{
+			Customer customer;
+			
+			/*fread返回值不为0则文件未读完  为0则读取完毕退出循环*/
+			int count = fread(&customer, sizeof(Customer), 1, fp);
+			if (count == 0)
+			{
+				break;
+			}
+			
+			/*建立节点 存储读取来的数据*/
+			CustomerNode* pnew_customer = (CustomerNode*)malloc(sizeof(CustomerNode));
+			pnew_customer->next = NULL;
+			pnew_customer->data = customer;
+			p_customer->next = pnew_customer;
+			p_customer = pnew_customer;
+		}
 	}
 	fclose(fp);/*关闭文件*/
 	
 	/*订单*/
-	fp = fopen("order.txt", "wb");
-	for (i=0; i<customer_orderNum[1]; i++)
-	{
-		fwrite(&order[i], sizeof(Order), 1, fp);
-	}
-	fclose(fp);
-	
-	/*库存量*/
-	fp = fopen("productAmount.txt", "wb");
-	for (i=0; i< 21; i++)
-	{
-		fwrite(&product[i].amount, sizeof(int), 1, fp);/*写入数据*/
-	}
-	fclose(fp);
-}
-
-/*将客户信息及订单从硬盘上读取内存中*/
-void ReadFile(Customer customer[], Order order[], Product product[], int customer_orderNum[])
-{
-	FILE* fp = NULL;/*定义文件指针*/
-	int i = 0;/*迭代器*/
-	
-	fp = fopen("customer.txt", "rb");/*打开文件*/
-	if (fp == NULL)
-	{
-		return;
-	}
-	
-	while (1)
-	{
-		int count = fread(&customer[i], sizeof(Customer), 1, fp);/*读取数据*/
-		if (count == 0)/*若count == 0则文件读取完毕 退出循环*/
-		{
-			break;
-		}
-		
-		i++;
-		customer_orderNum[0]++;/*客户数量加1*/
-	}
-	fclose(fp);/*关闭文件*/
-	
-	
-	i = 0;
-	
 	fp = fopen("order.txt", "rb");
+	
 	if (fp == NULL)
 	{
-		return;
+		printf("\n文件不存在");
 	}
-	
-	while (1)
+	else
 	{
-		int count = fread(&order[i], sizeof(Order), 1, fp);
-		if (count == 0)
+		while (1)
 		{
-			break;
+			Order order;
+			
+			int count = fread(&order, sizeof(Order), 1, fp);
+			if (count == 0)
+			{
+				break;
+			}
+			
+			OrderNode* pnew_order = (OrderNode*)malloc(sizeof(OrderNode));
+			pnew_order->next = NULL;
+			pnew_order->data = order;
+			p_order->next = pnew_order;
+			p_order = pnew_order;
 		}
-		
-		i++;
-		customer_orderNum[1]++;
 	}
 	fclose(fp);
 	
-	i = 0;
+	/*商品*/
+	fp = fopen("product.txt", "rb");
 	
-	fp = fopen("productAmount.txt", "rb");
 	if (fp == NULL)
 	{
-		return;
+		printf("\n文件不存在");
 	}
-	
-	while (1)
+	else
 	{
-		int count = fread(&product[i].amount, sizeof(int), 1, fp);
-		if (count == 0)
+		while (1)
 		{
-			break;
+			Product product;
+			
+			int count = fread(&product, sizeof(Product), 1, fp);
+			if (count == 0)
+			{
+				break;
+			}
+			
+			ProductNode* pnew_product = (ProductNode*)malloc(sizeof(ProductNode));
+			pnew_product->next = NULL;
+			pnew_product->data = product;
+			p_product->next = pnew_product;
+			p_product = pnew_product;
 		}
-		
-		i++;
 	}
 	fclose(fp);
+	
 }
 
+/*释放节点*/
+void ReleaseNode(CustomerNode* CusNodeHead, OrderNode* OrNodeHead, ProductNode* ProNodeHead)
+{
+	/*顾客*/
+	/*代指针指向头结点*/
+	CustomerNode *p_customer = CusNodeHead;
+	while (p_customer != NULL)
+	{
+		CusNodeHead = CusNodeHead->next; /*头指针向链表尾移动*/
+		free(p_customer);/*代指针所指空间释放*/
+		p_customer = CusNodeHead;   /*代指针指向头指针 不断移动*/
+	}
+	
+	/*订单*/
+	OrderNode* p_order = OrNodeHead;
+	while (p_order != NULL)
+	{
+		OrNodeHead = OrNodeHead->next;
+		free(p_order);
+		p_order = OrNodeHead;
+	}
+	
+	/*商品*/
+	ProductNode* p_product = ProNodeHead;
+	while (p_product != NULL)
+	{
+		ProNodeHead = ProNodeHead->next;
+		free(p_product);
+		p_product = ProNodeHead;
+	}
+}
 
