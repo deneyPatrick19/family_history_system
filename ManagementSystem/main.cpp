@@ -1,5 +1,65 @@
-#include "nodeheader.h"
+#include "administrator.h"
+#include "customer.h"
+
 /* run this program using the console pauser or add your own getch, system("pause") or input loop */
+
+struct Customer		//顾客信息
+{
+	int num; 				//顾客代码
+	char id[21]; 			//顾客昵称
+	char name[16]; 			//顾客姓名
+	char address[26]; 		//地址
+	char postcode[11]; 		//邮编
+	char phone[12]; 		//电话
+};
+
+struct Order		//订单信息
+{
+	int number; 			//订单号
+	char pay_date[30];  	//下单日期
+	int customer_num;  		//顾客代码
+	int transport_flag; 	// 是否发货标识  1表示已开始配送 0表示未开始
+	int pay_flag; 			//是否付款标识  1表示已付款 0表示未付款
+	char transport_date[30];//运输日期
+	double transport_pay; 	//运费  
+	double amount; 			//数量
+	double total_price; 	//总金额
+	char information[100];  //订单详细信息
+};
+
+struct Product		//库存商品信息
+{
+	int category_num; 		//商品编号
+	char factory_num[21]; 	//生产厂家编号
+	char information[100]; 	//商品说明
+	double price;	 		//单价
+	int amount;  			//库存量(份)
+};
+
+struct Factory		//生产厂家信息
+{
+	char num[21]; 			//厂家代码
+	char name[36]; 			//厂家名称
+};
+
+/*链表节点声明*/
+struct CustomerNode			//顾客节点
+{
+	Customer data;			//数据域
+	CustomerNode* next;		//指针
+};
+
+struct OrderNode			//订单节点
+{
+	Order data;
+	OrderNode* next;
+};
+
+struct ProductNode			//商品节点
+{
+	Product data;
+	ProductNode* next;
+};
 
 int main() 
 {
@@ -115,7 +175,7 @@ void ProductDefine(ProductNode* ProNodeHead, Factory* factory)
 }
 
 /*获取现在的时间*/
-char* GetTime(char* str_time) 
+char* GetTime(char* str_time)
 {
 	int sec = 0;
 	time_t* clock;
@@ -294,4 +354,3 @@ void ReleaseNode(CustomerNode* CusNodeHead, OrderNode* OrNodeHead, ProductNode* 
 		p_product = ProNodeHead;
 	}
 }
-

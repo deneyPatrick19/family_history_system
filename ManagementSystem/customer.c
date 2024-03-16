@@ -1,4 +1,4 @@
-#include "nodeheader.h"
+#include "customer.h"
 
 /*客户模块的函数及菜单界面*/
 void CustomerMenu(CustomerNode* CusNodeHead, OrderNode* OrNodeHead, ProductNode* ProNodeHead)	/*客户菜单 选择功能进行操作*/	
@@ -20,7 +20,7 @@ void CustomerMenu(CustomerNode* CusNodeHead, OrderNode* OrNodeHead, ProductNode*
 	if (flag == -1)
 	{
 		/*添加客户*/
-		CusNodeHead = AddCustomer(CusNodeHead, name); 
+		CusNodeHead = AddCustomer(CusNodeHead, name);
 	}
 
 	/*顾客功能选择菜单*/
@@ -873,7 +873,7 @@ Customer ChangeCustomerMenu(Customer customer)
 }
 
 /*修改顾客的信息*/
-void ChangeCustomer(CustomerNode* CusNodeHead, char name[])
+void ChangeCustomer(CustomerNode* CusNodeHead, char* name)
 {
 	CustomerNode* p = CusNodeHead;
 	
