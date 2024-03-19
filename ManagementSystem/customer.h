@@ -18,13 +18,7 @@ struct OrderNode;			//订单节点
 struct ProductNode;			//商品节点
 
 
-/*函数定义*/
-char* GetTime(char* str_time);
-void ProductDefine(ProductNode* ProNodeHead, Factory* factory);
-void ReleaseNode(CustomerNode* CusNodeHead, OrderNode* OrNodeHead, ProductNode* ProNodeHead);
-void WriteFile(CustomerNode* CusNodeHead, OrderNode* OrNodeHead, ProductNode* ProNodeHead);
-void ReadFile(CustomerNode* CusNodeHead, OrderNode* OrNodeHead, ProductNode* ProNodeHead);
-
+extern char* GetTime(char* str_time);
 /*顾客菜单函数定义*/
 void CustomerMenu(CustomerNode* CusNodeHead, OrderNode* OrNodeHead, ProductNode* ProNodeHead);
 void PurchaseMenu(CustomerNode* CusNodeHead, OrderNode* OrNodeHead, ProductNode* ProNodeHead, char *name);
@@ -39,7 +33,7 @@ OrderNode* FindOrder(OrderNode* OrNodeHead, int number);
 ProductNode* FindProduct(ProductNode* ProNodeHead, int option);
 void ShowReceipt(CustomerNode* CusNodeHead, OrderNode* OrNodeHead, int number);
 int DeleteOrderByCustomer(OrderNode* OrNodeHead, ProductNode* ProNodeHead, int number);
-void ResumeCustomerAmount(char* information, ProductNode* ProNodeHead);
+void ResumeAmount(char* information, ProductNode* ProNodeHead);
 int TraversalCustomerOrders(OrderNode* OrNodeHead, CustomerNode* CusNodeHead, char* name);
 void Pay(OrderNode* OrNodeHead, int number);
 Customer ChangeCustomerMenu(Customer customer);

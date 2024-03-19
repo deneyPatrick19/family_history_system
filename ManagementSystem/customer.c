@@ -1,4 +1,61 @@
 #include "customer.h"
+struct Customer		//顾客信息
+{
+	int num; 				//顾客代码
+	char id[21]; 			//顾客昵称
+	char name[16]; 			//顾客姓名
+	char address[26]; 		//地址
+	char postcode[11]; 		//邮编
+	char phone[12]; 		//电话
+};
+
+struct Order		//订单信息
+{
+	int number; 			//订单号
+	char pay_date[30];  	//下单日期
+	int customer_num;  		//顾客代码
+	int transport_flag; 	// 是否发货标识  1表示已开始配送 0表示未开始
+	int pay_flag; 			//是否付款标识  1表示已付款 0表示未付款
+	char transport_date[30];//运输日期
+	double transport_pay; 	//运费  
+	double amount; 			//数量
+	double total_price; 	//总金额
+	char information[100];  //订单详细信息
+};
+
+struct Product		//库存商品信息
+{
+	int category_num; 		//商品编号
+	char factory_num[21]; 	//生产厂家编号
+	char information[100]; 	//商品说明
+	double price;	 		//单价
+	int amount;  			//库存量(份)
+};
+
+struct Factory		//生产厂家信息
+{
+	char num[21]; 			//厂家代码
+	char name[36]; 			//厂家名称
+};
+
+/*链表节点声明*/
+struct CustomerNode			//顾客节点
+{
+	Customer data;			//数据域
+	CustomerNode* next;		//指针
+};
+
+struct OrderNode			//订单节点
+{
+	Order data;
+	OrderNode* next;
+};
+
+struct ProductNode			//商品节点
+{
+	Product data;
+	ProductNode* next;
+};
 
 /*客户模块的函数及菜单界面*/
 void CustomerMenu(CustomerNode* CusNodeHead, OrderNode* OrNodeHead, ProductNode* ProNodeHead)	/*客户菜单 选择功能进行操作*/	
@@ -6,11 +63,16 @@ void CustomerMenu(CustomerNode* CusNodeHead, OrderNode* OrNodeHead, ProductNode*
 	/*通过输入姓名进行登录系统*/
 	char name[16]; 
 	
-	printf("\n输入姓名登录或注册:"); /*输入姓名登录*/
+	printf("\n输入姓名登录或注册(输入quit退出登录):"); /*输入姓名登录*/
 	
 	fflush(stdin);/*清除输入缓存*/
 	gets(name);/*输入姓名*/
 	fflush(stdin);
+	
+	if (strcmp(name, "quit") == 0)
+	{
+		return;
+	}
 	
 	/*查找客户是否已使用过系统 flag为存在标志位 为-1则客户进行注册 否则就直接使用*/
 	int flag;
@@ -537,7 +599,7 @@ int DeleteOrderByCustomer(OrderNode* OrNodeHead, ProductNode* ProNodeHead, int n
 			/*若该订单未付款 商品库存将回到下单前的值*/
 			if (pfollow->data.pay_flag == 0)
 			{
-				ResumeCustomerAmount(pfollow->data.information, ProNodeHead);/*将商品库存量变成订单前的值*/
+				ResumeAmount(pfollow->data.information, ProNodeHead);/*将商品库存量变成订单前的值*/
 			}
 			
 			if (pfollow->data.pay_flag == 1)/*若已支付 不返还商品库存量 显示提示信息*/
@@ -564,7 +626,7 @@ int DeleteOrderByCustomer(OrderNode* OrNodeHead, ProductNode* ProNodeHead, int n
 }
 
 /*通过将订单的详细信息转化为商品名及数量来返回购买商品消耗的库存量*/
-void ResumeCustomerAmount(char* information, ProductNode* ProNodeHead)
+void ResumeAmount(char* information, ProductNode* ProNodeHead)
 {
 	/*例如 "生菜*2 啤酒*1 可乐*12 "*/
 	
