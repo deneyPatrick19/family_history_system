@@ -11,7 +11,7 @@ import java.util.Date;
 public class Family_table {
     @TableId("id")
     private Integer id;
-    private Integer member_id;
+    private Integer user_id;
     private String table_name;
     private String content;
     private Date establish_time;

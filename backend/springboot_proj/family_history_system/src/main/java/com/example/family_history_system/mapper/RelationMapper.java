@@ -35,5 +35,10 @@ public interface RelationMapper extends BaseMapper<Relationship> {
     int deleteRelationById(@Param("id1") Integer id1,@Param("id2") Integer id2);
 
     @Update("update `system`.relationship set relationship.relation=#{relation} where member_id1=#{member_id1} and member_id2=#{member_id2}")
+    @Results({
+            @Result(property = "member_id1", column = "member_id1", id = true,jdbcType = JdbcType.INTEGER),
+            @Result(property = "member_id2", column = "member_id2", id = true,jdbcType = JdbcType.INTEGER),
+            @Result(property = "relation", column = "relation", jdbcType = JdbcType.VARCHAR)
+    })
     int updateRelationById(Relationship relation);
 }
