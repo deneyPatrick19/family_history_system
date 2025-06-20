@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 @TableName(value = "member")
 public class Member {
@@ -12,7 +14,7 @@ public class Member {
     private Integer family_table_id;
     private String name;
     private String gender;
-    private String birthdate;
-    private String deathdate;
+    private Date birthdate;
+    private Date deathdate;
     private String icon;
 }

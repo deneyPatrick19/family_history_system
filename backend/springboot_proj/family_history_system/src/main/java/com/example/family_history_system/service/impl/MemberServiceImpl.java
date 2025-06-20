@@ -13,17 +13,17 @@ public class MemberServiceImpl implements MemberService {
     @Autowired
     private MemberMapper memberMapper;
 
-    public void insertMember(Member member){
-        memberMapper.insert(member);
+    public int insertMember(Member member){
+        return memberMapper.insert(member);
     }
-    public void updateMember(Member member) {
-        memberMapper.updateById(member);
+    public int updateMember(Member member) {
+        return memberMapper.updateById(member);
     }
-    public void deleteMember(Integer id) {
-        memberMapper.deleteById(id);
+    public int deleteMember(Integer id) {
+        return memberMapper.deleteById(id);
     }
-    public void findById(Integer id){
-        memberMapper.selectById(id);
+    public Member findById(Integer id){
+        return memberMapper.selectById(id);
     }
     public List<Member> findAll(){
         return memberMapper.selectAllMember();

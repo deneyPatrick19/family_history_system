@@ -23,7 +23,6 @@ public class UserController {
         return userService.getById(id);
     }
 
-
     @PostMapping
     public Boolean add(@RequestBody User user){
         return userService.saveOrUpdate(user);
