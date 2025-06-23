@@ -27,7 +27,5 @@ public class EventServiceImpl implements EventService {
     public List<Event> findAll(){
         return eventMapper.findAllEvent();
     }
-    public int addEvent(Event event){
-        return eventMapper.add(event);
-    }
+
 }

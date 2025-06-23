@@ -2,10 +2,8 @@ package com.example.family_history_system.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.family_history_system.entity.Relationship;
-import io.swagger.models.auth.In;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;
-
 import java.util.List;
 
 @Mapper

@@ -33,9 +33,4 @@ public class EventController {
     public List<Event> findAllEvent(){
         return eventService.findAll();
     }
-    @PostMapping("/add")
-    public int addEvent(@RequestBody Event event){
-        return eventService.addEvent(event);
-    }
-
 }

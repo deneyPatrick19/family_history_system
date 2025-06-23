@@ -1,5 +1,4 @@
 package com.example.family_history_system.mapper;
-
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.family_history_system.entity.Member;
 import org.apache.ibatis.annotations.Mapper;
