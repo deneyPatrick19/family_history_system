@@ -1,29 +1,31 @@
 <template>
   <div>
     <div class="member-history">
-    <h1>个人信息</h1>
-    <el-card>
-      <label for="name">姓名:</label>
-      <input type="name" v-if="readonly===false" id="name" v-model="member.name" :disabled="readonly" required/>
-      <el-text v-else> {{ member.name }}</el-text>
-      <label for="dob">出生日期:</label>
-      <input type="date" v-if="readonly===false" id="dob" v-model="member.dob" :disabled="readonly" required/>
-      <el-text v-else> {{ member.dob }}</el-text>
-      <label for="marrigedate">性别:</label>
-      <select v-if="readonly===false" v-model="member.gender" :disabled="readonly" required>
-        <option value="男">男</option>
-        <option value="女">女</option>
-      </select>
-      <el-text v-else> {{ member.gender }}</el-text>
-      <label for="deathdate">死亡日期:</label>
-      <input type="date" v-if="readonly===false" id="deathdate" v-model="member.deathDate" :disabled="readonly" required/>
-      <el-text v-else> {{ member.deathDate }}</el-text>
-      <label for="bio">生平简介:</label>
-      <input type="bio" v-if="readonly===false" id="bio" v-model="member.bio" :disabled="readonly" required/>
-      <el-text v-else> {{ member.bio }}</el-text>
-    </el-card>
-    <button v-if="readonly==true" @click="edit">编辑履历</button>
-    <button v-else @click="submit">提交履历</button>
+      <h1>个人信息</h1>
+        <el-form :model="member" label-width="80px">
+          <el-form-item label="姓名">
+            <el-input v-model="member.name" :disabled="readonly" placeholder="请输入姓名" />
+          </el-form-item>
+          <el-form-item label="出生日期">
+            <el-date-picker v-model="member.dob" type="date" :disabled="readonly" placeholder="选择出生日期" style="width: 100%;" />
+          </el-form-item>
+          <el-form-item label="性别">
+            <el-select v-model="member.gender" :disabled="readonly" placeholder="请选择性别" style="width: 100%;">
+              <el-option label="男" value="男" />
+              <el-option label="女" value="女" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="死亡日期">
+            <el-date-picker v-model="member.deathDate" type="date" :disabled="readonly" placeholder="选择死亡日期" style="width: 100%;" />
+          </el-form-item>
+          <el-form-item label="生平简介">
+            <el-input v-model="member.bio" :disabled="readonly" placeholder="请输入生平简介" />
+          </el-form-item>
+          <el-form-item>
+            <el-button v-if="readonly" type="primary" @click="edit">编辑履历</el-button>
+            <el-button v-else type="success" @click="submit">提交履历</el-button>
+          </el-form-item>
+        </el-form>
     </div>
   </div>
 </template>
@@ -35,73 +37,64 @@ export default {
     return {
       member: {
         name: '',
-        dob: '无',
+        dob: '',
         gender: '男',
-        deathDate: '无',
+        deathDate: '',
         bio: '',
       },
-      readonly:true,
+      readonly: true,
     };
   },
   methods: {
-    saveUserInfo:function() {
-      // Save user info in cookies
-      this.$cookies.set('name', this.name, 60*2);
-      this.$cookies.set('dob', this.dob, 60*2);
-      this.$cookies.set('gender', this.gender, 60*2);
-      this.$cookies.set('deathDate', this.deathDate, 60*2 );
-      this.$cookies.set('bio', this.bio, 60*2 );
-      this.loadUserInfo();
+    saveUserInfo() {
+      // 使用localStorage保存整个member对象
+      localStorage.setItem('member', JSON.stringify(this.member));
     },
-    loadUserInfo:function() {
-      this.name = this.$cookies.get('name');
-      this.dob = this.$cookies.get('dob');
-      this.gender = this.$cookies.get('gender');
-      this.deathDate = this.$cookies.get('deathDate');
-      this.bio = this.$cookies.get('bio');
+    loadUserInfo() {
+      const saved = localStorage.getItem('member');
+      if (saved) {
+        this.member = JSON.parse(saved);
+      }
     },
-    edit:function() {
-      ElMessageBox.confirm('您确定进行编辑吗？是否继续', '警告',{
+    edit() {
+      ElMessageBox.confirm('您确定进行编辑吗？是否继续', '警告', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-        }).then(() => {
+      }).then(() => {
         ElMessage({
-        type: 'success',
-        message: '已确认'
+          type: 'success',
+          message: '已确认'
         });
-        this.readonly = !this.readonly;
-        }).catch((err) => {
+        this.readonly = false;
+      }).catch((err) => {
         ElMessage({
-        type: 'info',
-        message: '取消操作' + err,
+          type: 'info',
+          message: '取消操作' + err,
         });
-        this.readonly = this.readonly;
-        });
+      });
     },
-    submit:function(){
-      ElMessageBox.confirm('您确定进行提交吗？是否继续', '警告',{
+    submit() {
+      ElMessageBox.confirm('您确定进行提交吗？是否继续', '警告', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-        }).then(() => {
+      }).then(() => {
         ElMessage({
-        type: 'success',
-        message: '已提交'
+          type: 'success',
+          message: '已提交'
         });
         this.saveUserInfo();
-        this.readonly = !this.readonly;
-        }).catch((err) => {
+        this.readonly = true;
+      }).catch((err) => {
         ElMessage({
-        type: 'info',
-        message: '取消操作' + err,
+          type: 'info',
+          message: '取消操作' + err,
         });
-        this.readonly = this.readonly;
-        });
+      });
     }
   },
   mounted() {
-    // 访问组件的 DOM 元素
     this.loadUserInfo();
   }
 };
@@ -117,24 +110,32 @@ label {
   display: block;
   margin-top: 10px;
 }
-.el-card{
+.el-card {
   margin: 8px;
   padding: 8px;
   text-align: left;
 }
-input, select{
+input, select {
   width: 400px;
   padding: 8px;
   margin: 8px 0;
 }
-button {
+button, .el-button {
   width: 60%;
   padding: 10px;
   background-color: #4CAF50;
   color: white;
   border: none;
   margin-top: 20px;
-  
   cursor: pointer;
+}
+.main-bg {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  padding: 32px 24px;
+  min-height: 400px; /* 可根据需要调整 */
+  margin: 32px auto;
+  max-width: 900px;  /* 可根据需要调整 */
 }
 </style>

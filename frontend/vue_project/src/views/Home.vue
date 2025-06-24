@@ -1,20 +1,27 @@
 <template>
   <div class="home">
-    <el-container style= "width: 100%;">
+    <el-container style="width: 100%;">
       <el-header id="header">
-        <h1 style="text-align: center; font-size: 24px;">家庭族谱管理系统</h1>
+        <div class="header-content">
+          <h1 class="header-title">家庭族谱管理系统</h1>
+          <div class="header-user">
+            <span class="username">{{ username }}</span>
+            <el-button type="text" @click="logout">退出登录</el-button>
+          </div>
+        </div>
       </el-header>
       <el-container style="width: 100%;">
         <el-aside id="sidebar">
-          <el-menu :router="true" >
-            <el-menu-item v-for="(item, index) in menuItems" :key="index" 
-            :class="{'active': activeItem === item}" @click="setActive(item)">
-             <router-link :to="`${item.path}`" class="router-link-active"> {{ item.id }} </router-link> 
+          <el-menu :router="true" :default-active="$route.path">
+            <el-menu-item v-for="(item, index) in menuItems" :key="index" :index="item.path">
+              {{ item.id }}
             </el-menu-item>
           </el-menu>
         </el-aside>
         <el-main id="main_content">
-          <router-view></router-view>
+          <div class="main-bg">
+            <router-view></router-view>
+          </div>
         </el-main>
       </el-container>
     </el-container>
@@ -22,28 +29,27 @@
 </template>
 
 <script>
-import router from '@/router';
-export default{
-  name:"Home",
-  data(){
+export default {
+  name: "Home",
+  data() {
     return {
       menuItems: [
-        {id:"首页", path: "/home"},
-        {id:"个人信息", path: "/member-history"},
-        {id:"添加家族关系", path: "/add-member"}],
-      activeItem: null,
+        { id: "首页", path: "/home" },
+        { id: "个人信息", path: "/member-history" },
+        { id: "添加家族关系", path: "/add-member" }
+      ],
+      username: localStorage.getItem('username') || '未登录'
     }
   },
-  methods:{
-    home:function(){
-      router.push("/home")
-    },
-    setActive(item) {
-      this.activeItem = item;
+  methods: {
+    logout() {
+      // 清除登录信息
+      localStorage.removeItem('username');
+      // 跳转到登录页
+      this.$router.push('/login');
     }
-  },
+  }
 }
-
 </script>
 
 
@@ -51,10 +57,19 @@ export default{
 .el-container{
   height: 100%;
 }
+.main-bg {
+  background: #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  padding: 4px 24px;
+  height: 98%;
+  /* min-height: 400px; 根据需要调整 */ 
+  margin: 2px;
+  max-width: 1400px;  /* 根据需要调整 */
+}
 .home {
   display: flex;
   flex-direction: column;
-  background-image: url("../assets/16pic_9345737_b.png");
   background-size: 100% 100%;
   background-attachment: fixed;
   width: 100%;
@@ -86,5 +101,35 @@ export default{
 }
 .el-menu-item{
   font-size: 16px;
+}
+.header-content {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 24px; /* 可选：让内容不贴边 */
+}
+.header-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 24px;
+  margin: 0;
+  color: #fff;
+  white-space: nowrap;
+}
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1;
+}
+.username {
+  font-weight: bold;
+  color: #fff;
 }
 </style>

@@ -1,22 +1,27 @@
 <template>
   <div class="add-member">
-    <h1>增加成员</h1>
-    <form @submit.prevent="addMember">
-      <label for="name">姓名:</label>
-      <input type="text" id="name" v-model="newMember.name" required />
-      
-      <label for="dob">出生日期:</label>
-      <input type="date" id="dob" v-model="newMember.dob" required />
-      
-      <label for="relationship">关系:</label>
-      <select v-model="newMember.relationship">
-        <option value="父辈">父辈</option>
-        <option value="平辈">平辈</option>
-        <option value="子辈">子辈</option>
-      </select>
-      
-      <button type="submit">添加成员</button>
-    </form>
+    <div class="form-card">
+      <h1>增加成员</h1>
+      <el-form :model="newMember" :rules="rules" ref="memberForm" label-width="80px" @submit.prevent>
+        <el-form-item label="姓名" prop="name">
+          <el-input v-model="newMember.name" placeholder="请输入姓名" />
+        </el-form-item>
+        <el-form-item label="出生日期" prop="dob">
+          <el-date-picker v-model="newMember.dob" type="date" placeholder="选择日期" style="width: 100%;" />
+        </el-form-item>
+        <el-form-item label="关系" prop="relationship">
+          <el-select v-model="newMember.relationship" placeholder="请选择关系">
+            <el-option label="父辈" value="父辈" />
+            <el-option label="平辈" value="平辈" />
+            <el-option label="子辈" value="子辈" />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="addMember">添加成员</el-button>
+          <el-button @click="resetForm">重置</el-button>
+        </el-form-item>
+      </el-form>
+    </div>
   </div>
 </template>
 
@@ -27,14 +32,34 @@ export default {
       newMember: {
         name: '',
         dob: '',
-        relationship: '子辈',
+        relationship: '',
+      },
+      rules: {
+        name: [
+          { required: true, message: '请输入姓名', trigger: 'blur' },
+          { min: 2, max: 10, message: '姓名长度2-10个字', trigger: 'blur' }
+        ],
+        dob: [
+          { required: true, message: '请选择出生日期', trigger: 'change' }
+        ],
+        relationship: [
+          { required: true, message: '请选择关系', trigger: 'change' }
+        ]
       }
     };
   },
   methods: {
     addMember() {
-      // 在这里可以将新成员数据保存到数据库或者本地状态中
-      alert('成员已添加');
+      this.$refs.memberForm.validate((valid) => {
+        if (valid) {
+          // 这里可以将新成员数据保存到数据库或者本地状态中
+          this.$message.success('成员已添加');
+          this.resetForm();
+        }
+      });
+    },
+    resetForm() {
+      this.$refs.memberForm.resetFields();
     }
   }
 };
@@ -42,36 +67,20 @@ export default {
 
 <style scoped>
 .add-member {
-  max-width: 430px;
-  margin: auto;
-  text-align: left;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  background: none;
 }
-h1{
-  position: absolute;
-  left: 38%;
+.form-card {
+  width: 430px;
+  padding: 30px 20px 20px 20px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border-radius: 12px;
 }
-form{
-  position: absolute;
-  left: 38%;
-  top: 20%;
-}
-label {
-  display: block;
-  margin-top: 10px;
-}
-
-input, select{
-  width: 400px;
-  padding: 8px;
-  margin: 8px 0;
-}
-button {
-  width: 60%;
-  padding: 10px;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  margin-top: 20px;
-  cursor: pointer;
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
 }
 </style>
