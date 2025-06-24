@@ -42,23 +42,31 @@ export default {
 
 <style scoped>
 .add-member {
-  max-width: 400px;
+  max-width: 430px;
   margin: auto;
+  text-align: left;
 }
-
-form label {
+h1{
+  position: absolute;
+  left: 38%;
+}
+form{
+  position: absolute;
+  left: 38%;
+  top: 20%;
+}
+label {
   display: block;
   margin-top: 10px;
 }
 
-form input, form select {
-  width: 100%;
-  padding: 10px;
-  margin: 5px 0;
+input, select{
+  width: 400px;
+  padding: 8px;
+  margin: 8px 0;
 }
-
 button {
-  width: 100%;
+  width: 60%;
   padding: 10px;
   background-color: #4CAF50;
   color: white;

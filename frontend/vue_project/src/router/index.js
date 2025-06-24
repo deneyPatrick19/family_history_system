@@ -30,9 +30,9 @@ const router = createRouter({
       component: () => import('../views/Sign.vue')
     },
     {
-      path: '/family-tree', name: 'familytree',
-      component: () => import('../views/Familytree.vue')
-    },
+      path: '/tree', name:'tree',
+      component: () => import('../views/Tree.vue')
+    }
   ]
 })
 

@@ -23,9 +23,7 @@
 
 <script>
 import router from '@/router';
-import IconDocumentation from '@/components/icons/IconDocumentation.vue';
 export default{
-  components: { IconDocumentation },
   name:"Home",
   data(){
     return {
@@ -79,9 +77,7 @@ export default{
   text-align: left;
 }
 #main_content{
-  width: 100%;
-  height: 100%;
-  background-color: rgb(234, 228, 228);
+  background-color: rgb(242, 239, 239);
   /* border-radius: 8px; */
 }
 .active {

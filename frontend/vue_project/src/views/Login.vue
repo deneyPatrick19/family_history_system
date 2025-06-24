@@ -12,8 +12,8 @@
           <el-text style="color: black; padding-right: 15px;padding-left: 15px;">密码: </el-text>
           <el-input v-model="password" style="width: 210px" placeholder="请输入密码" show-password/>
           <div>
-            <el-button type="primary" v-on:click="signup">登录</el-button>
-            <el-link type="primary" style="font-size: 12px;" href="http://localhost:5173/signup">没有账号？点击注册</el-link>
+            <el-button type="primary" @click="signup">登录</el-button>
+            <a type="primary" style="font-size: 12px;" href="http://localhost:5173/signup">没有账号？点击注册</a>
           </div>
         </div>
       </el-card>
@@ -74,14 +74,6 @@ h1{
     /* rgb(247, 246, 246) */
   );
 }
-#logo{
-  color:black;
-  font-size:25px;
-  top:15%;
-  left:15%;
-  font-weight: bold;
-  font-style:italic;
-}
 #login{
   position:absolute;
   top:35%;
@@ -101,11 +93,9 @@ h1{
   position:relative;
   left:25%;
 }
-.el-link{
+a{
   position: absolute;
   left: 60%;
 }
 
 </style>
-
-

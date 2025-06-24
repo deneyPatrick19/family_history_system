@@ -2,7 +2,7 @@
   <div class="family-tree">
     <h1>家庭族谱</h1>
     <div class="family-member" v-for="member in familyMembers" :key="member.id">
-      <div class="member-info">，
+      <div class="member-info">,
         <p><strong>姓名:</strong> {{ member.name }}</p>
         <p><strong>性别:</strong> {{ member.gender }}</p>
         <p><strong>生日:</strong> {{ member.dob }}</p>
