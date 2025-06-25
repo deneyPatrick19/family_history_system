@@ -47,13 +47,21 @@ export default {
   },
   methods: {
     saveUserInfo() {
-      // 使用localStorage保存整个member对象
+      // 使用 store 保存个人信息
+      this.$store.commit('SET_MEMBERS', [this.member]);
+      // 同时保存到 localStorage 作为备份
       localStorage.setItem('member', JSON.stringify(this.member));
     },
     loadUserInfo() {
-      const saved = localStorage.getItem('member');
-      if (saved) {
-        this.member = JSON.parse(saved);
+      // 优先从 store 读取，如果没有则从 localStorage 读取
+      const storeMembers = this.$store.getters.members;
+      if (storeMembers.length > 0) {
+        this.member = storeMembers[0];
+      } else {
+        const saved = localStorage.getItem('member');
+        if (saved) {
+          this.member = JSON.parse(saved);
+        }
       }
     },
     edit() {

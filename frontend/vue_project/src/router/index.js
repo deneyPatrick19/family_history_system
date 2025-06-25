@@ -23,15 +23,15 @@ const router = createRouter({
         path: '/add-member', name: 'addmember',
         component: () => import('../views/AddMember.vue')
       },
+      {
+        path: '/family-tree', name: 'familytree',
+        component: () => import('../views/Familytree.vue')
+      },
     ]
     },
     {
       path: '/signup', name: 'sign',
       component: () => import('../views/Sign.vue')
-    },
-    {
-      path: '/tree', name:'tree',
-      component: () => import('../views/Tree.vue')
     }
   ]
 })

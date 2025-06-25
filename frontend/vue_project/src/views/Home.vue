@@ -6,7 +6,7 @@
           <h1 class="header-title">家庭族谱管理系统</h1>
           <div class="header-user">
             <span class="username">{{ username }}</span>
-            <el-button type="text" @click="logout">退出登录</el-button>
+            <el-button type="text" @click="logout" style="color: #000;">退出登录</el-button>
           </div>
         </div>
       </el-header>
@@ -36,18 +36,26 @@ export default {
       menuItems: [
         { id: "首页", path: "/home" },
         { id: "个人信息", path: "/member-history" },
-        { id: "添加家族关系", path: "/add-member" }
-      ],
-      username: localStorage.getItem('username') || '未登录'
+        { id: "添加家族关系", path: "/add-member" },
+        { id: "家族树管理", path: "/family-tree" }
+      ]
+    }
+  },
+  computed: {
+    username() {
+      return this.$store.getters.user.username
     }
   },
   methods: {
     logout() {
-      // 清除登录信息
-      localStorage.removeItem('username');
-      // 跳转到登录页
+      // 使用 store 退出登录
+      this.$store.dispatch('logout');
       this.$router.push('/login');
     }
+  },
+  mounted() {
+    // 页面加载时初始化用户信息
+    this.$store.dispatch('initUser');
   }
 }
 </script>
@@ -58,14 +66,16 @@ export default {
   height: 100%;
 }
 .main-bg {
+  height: 98%;
   background: #fff;
   border-radius: 5px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.08);
   padding: 4px 24px;
-  height: 98%;
-  /* min-height: 400px; 根据需要调整 */ 
   margin: 2px;
-  max-width: 1400px;  /* 根据需要调整 */
+  width: 100vw;
+  height: 100vh;
+  overflow-x: auto;
+  overflow-y: auto;
 }
 .home {
   display: flex;
