@@ -1,11 +1,14 @@
 package com.example.family_history_system.controller;
-
+import com.example.family_history_system.entity.Response;
+import com.example.family_history_system.entity.JwtUtil;
 import com.example.family_history_system.service.UserService;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import com.example.family_history_system.entity.User;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin
 @RestController
@@ -44,7 +47,19 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public Boolean login(@Param("username") String username, @Param("password")  String password) {
-        return userService.verifyUser(username, password);
+    public Response login(@Param("username") String username, @Param("password")  String password) {
+        Boolean result =  userService.verifyUser(username, password);
+        if (result){
+            // 生成JWT token
+            String token = JwtUtil.generateToken(username);
+            
+            // 创建返回数据，包含token和用户信息
+            Map<String, Object> data = new HashMap<>();
+            data.put("token", token);
+            data.put("username", username);
+            
+            return Response.buildSuccess(data);
+        }
+        return Response.buildFault();
     }
 }
