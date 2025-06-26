@@ -28,4 +28,7 @@ public class MemberServiceImpl implements MemberService {
     public List<Member> findAll(){
         return memberMapper.selectAllMember();
     }
+    public List<Member> findByFamilyTableId(Integer familyTableId){
+        return memberMapper.selectByFamilyTableId(familyTableId);
+    }
 }

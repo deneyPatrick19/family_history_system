@@ -8,4 +8,5 @@ public interface MemberService {
     int deleteMember(Integer id);
     Member findById(Integer id);
     List<Member> findAll();
+    List<Member> findByFamilyTableId(Integer familyTableId);
 }

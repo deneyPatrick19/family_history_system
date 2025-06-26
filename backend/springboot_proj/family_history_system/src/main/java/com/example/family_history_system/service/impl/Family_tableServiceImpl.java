@@ -29,4 +29,7 @@ public class Family_tableServiceImpl implements Family_tableService {
     public List<Family_table> findAll(){
         return family_tableMapper.FindAllFamilyTable();
     }
+    public List<Family_table> findByUserId(Integer userId){
+        return family_tableMapper.selectByUserId(userId);
+    }
 }

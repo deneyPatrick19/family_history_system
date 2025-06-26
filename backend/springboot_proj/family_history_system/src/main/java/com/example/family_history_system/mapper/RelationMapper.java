@@ -39,4 +39,10 @@ public interface RelationMapper extends BaseMapper<Relationship> {
             @Result(property = "relation", column = "relation", jdbcType = JdbcType.VARCHAR)
     })
     int updateRelationById(Relationship relation);
+    
+    @Delete("delete from `system`.relationship where member_id1=#{memberId} or member_id2=#{memberId}")
+    int deleteRelationsByMemberId(@Param("memberId") Integer memberId);
+
+    @Select("SELECT COUNT(*) FROM `system`.relationship WHERE relation = '兄弟' AND ((member_id1 = #{memberId1} AND member_id2 = #{memberId2}) OR (member_id1 = #{memberId2} AND member_id2 = #{memberId1}))")
+    int existsSiblingRelation(@Param("memberId1") int memberId1, @Param("memberId2") int memberId2);
 }

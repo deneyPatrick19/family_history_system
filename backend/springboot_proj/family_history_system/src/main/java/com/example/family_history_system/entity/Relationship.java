@@ -12,9 +12,9 @@ import lombok.Data;
 public class Relationship {
     @MppMultiId
     @TableField("member_id1")
-    private int member_id1;
+    private Integer member_id1;
     @MppMultiId
     @TableField("member_id2")
-    private int member_id2;
+    private Integer member_id2;
     private String relation;
 }

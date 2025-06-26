@@ -28,4 +28,11 @@ public class RelationServiceImpl implements RelationService {
     public int updateRelationById(Relationship relation){
         return relationMapper.updateRelationById(relation);
     }
+    public int deleteRelationsByMemberId(Integer memberId){
+        return relationMapper.deleteRelationsByMemberId(memberId);
+    }
+    @Override
+    public boolean existsSiblingRelation(int memberId1, int memberId2) {
+        return relationMapper.existsSiblingRelation(memberId1, memberId2) > 0;
+    }
 }

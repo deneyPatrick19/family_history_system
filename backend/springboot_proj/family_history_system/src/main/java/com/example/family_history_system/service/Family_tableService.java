@@ -10,4 +10,22 @@ public interface Family_tableService {
     int updateFamily_table(Family_table family_table);
     Family_table findFamily_table(Integer id);
     List<Family_table> findAll();
+    List<Family_table> findByUserId(Integer userId);
+    
+    // 为了兼容性，添加别名方法
+    default int insert(Family_table family_table) {
+        return insertFamily_table(family_table);
+    }
+    
+    default int delete(Integer id) {
+        return deleteFamily_table(id);
+    }
+    
+    default int update(Family_table family_table) {
+        return updateFamily_table(family_table);
+    }
+    
+    default Family_table findById(Integer id) {
+        return findFamily_table(id);
+    }
 }
