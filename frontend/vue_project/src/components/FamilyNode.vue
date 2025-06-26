@@ -33,6 +33,24 @@
         />
       </div>
     </div>
+    <div class="siblings-container" v-if="node.siblings && node.siblings.length > 0">
+      <div class="siblings-label">兄弟姐妹：</div>
+      <div class="siblings-wrapper">
+        <FamilyNode
+          v-for="sibling in node.siblings"
+          :key="sibling.id"
+          :node="sibling"
+          :selectedNode="selectedNode"
+          :selectNode="selectNode"
+          :addChild="addChild"
+          :addParent="addParent"
+          :editNode="editNode"
+          :addSibling="addSibling"
+          :deleteNode="deleteNode"
+          :formatDate="formatDate"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -98,6 +116,26 @@ export default {
 .children-wrapper {
   display: flex;
   gap: 40px;
+  position: relative;
+}
+.siblings-container {
+  position: relative;
+  margin-top: 15px;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+.siblings-label {
+  font-size: 12px;
+  color: #6c757d;
+  margin-bottom: 10px;
+  text-align: center;
+  font-weight: 500;
+}
+.siblings-wrapper {
+  display: flex;
+  gap: 20px;
   position: relative;
 }
 </style> 

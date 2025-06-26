@@ -4,6 +4,7 @@ export default createStore({
   state: {
     // 存储用户信息
     user: {
+      id: null,
       username: '',
       token: ''
     },
@@ -19,7 +20,7 @@ export default createStore({
     
     // 清除用户信息
     CLEAR_USER(state) {
-      state.user = { username: '', token: '' }
+      state.user = { id: null, username: '', token: '' }
     },
     
     // 添加家族成员
@@ -40,6 +41,9 @@ export default createStore({
       // 同时保存到 localStorage
       localStorage.setItem('token', userInfo.token)
       localStorage.setItem('username', userInfo.username)
+      if (userInfo.id) {
+        localStorage.setItem('userId', userInfo.id)
+      }
     },
     
     // 退出登录
@@ -47,14 +51,20 @@ export default createStore({
       commit('CLEAR_USER')
       localStorage.removeItem('token')
       localStorage.removeItem('username')
+      localStorage.removeItem('userId')
     },
     
     // 初始化用户信息（从 localStorage 读取）
     initUser({ commit }) {
       const token = localStorage.getItem('token')
       const username = localStorage.getItem('username')
+      const userId = localStorage.getItem('userId')
       if (token && username) {
-        commit('SET_USER', { token, username })
+        commit('SET_USER', { 
+          token, 
+          username, 
+          id: userId ? parseInt(userId) : null 
+        })
       }
     }
   },

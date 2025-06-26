@@ -1,32 +1,47 @@
 <template>
   <div class="family-tree">
-    <div class="tree-header">
-      <h2>家族树管理</h2>
-      <div class="header-actions">
-        <el-button type="primary" @click="addRootNode">添加根节点</el-button>
-        <el-button type="success" @click="expandAll">展开全部</el-button>
-        <el-button type="warning" @click="collapseAll">收起全部</el-button>
-      </div>
+    <!-- 家族表选择器 -->
+    <div v-if="!selectedFamilyTableId" class="table-selector-container">
+      <FamilyTableSelector 
+        :userId="userId" 
+        @table-selected="onTableSelected" 
+      />
     </div>
 
-    <div class="tree-container">
-      <div class="tree-wrapper">
-        <FamilyNode
-          v-if="rootNode"
-          :node="rootNode"
-          :selectedNode="selectedNode"
-          :selectNode="selectNode"
-          :addChild="addChild"
-          :addParent="addParent"
-          :editNode="editNode"
-          :addSibling="addSibling"
-          :deleteNode="deleteNode"
-          :formatDate="formatDate"
-        />
-        <div v-else class="empty-tree">
-          <el-empty description="暂无家族树数据，请添加根节点开始创建">
-            <el-button type="primary" @click="addRootNode">添加根节点</el-button>
-          </el-empty>
+    <!-- 家谱树管理界面 -->
+    <div v-else class="tree-management">
+      <div class="tree-header">
+        <div class="header-left">
+          <h2>家族树管理</h2>
+          <el-button type="text" @click="backToSelector">切换家族表</el-button>
+        </div>
+        <div class="header-actions">
+          <el-button type="primary" @click="addRootNode">添加根节点</el-button>
+          <el-button type="success" @click="expandAll">展开全部</el-button>
+          <el-button type="warning" @click="collapseAll">收起全部</el-button>
+          <el-button type="info" @click="refreshTree">刷新数据</el-button>
+        </div>
+      </div>
+
+      <div class="tree-container">
+        <div class="tree-wrapper">
+          <FamilyNode
+            v-if="rootNode"
+            :node="rootNode"
+            :selectedNode="selectedNode"
+            :selectNode="selectNode"
+            :addChild="addChild"
+            :addParent="addParent"
+            :editNode="editNode"
+            :addSibling="addSibling"
+            :deleteNode="deleteNode"
+            :formatDate="formatDate"
+          />
+          <div v-else class="empty-tree">
+            <el-empty description="暂无家族树数据，请添加根节点开始创建">
+              <el-button type="primary" @click="addRootNode">添加根节点</el-button>
+            </el-empty>
+          </div>
         </div>
       </div>
     </div>
@@ -38,7 +53,14 @@
           <el-input v-model="editingNode.name" placeholder="请输入姓名" />
         </el-form-item>
         <el-form-item label="出生日期" prop="birthDate">
-          <el-date-picker v-model="editingNode.birthDate" type="date" placeholder="选择出生日期" style="width: 100%;" />
+          <el-date-picker 
+            v-model="editingNode.birthDate" 
+            type="date" 
+            placeholder="选择出生日期" 
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
+            style="width: 100%;" 
+          />
         </el-form-item>
         <el-form-item label="性别" prop="gender">
           <el-select v-model="editingNode.gender" placeholder="请选择性别" style="width: 100%;">
@@ -65,11 +87,16 @@
 
 <script>
 import FamilyNode from '../components/FamilyNode.vue';
+import FamilyTableSelector from '../components/FamilyTableSelector.vue';
+import { familyTreeAPI } from '../api/familyTree';
+
 export default {
   name: 'FamilyTree',
-  components: { FamilyNode },
+  components: { FamilyNode, FamilyTableSelector },
   data() {
     return {
+      selectedFamilyTableId: null,
+      userId: 1, // 默认用户ID，实际应该从用户信息中获取
       rootNode: null,
       selectedNode: null,
       dialogVisible: false,
@@ -92,46 +119,57 @@ export default {
           { required: true, message: '请选择性别', trigger: 'change' }
         ]
       },
-      nextId: 1
+      loading: false
     }
   },
   mounted() {
-    this.loadTreeData();
-    this.$nextTick(() => {
-      const container = this.$el.querySelector('.tree-container');
-      if (container) {
-        container.scrollLeft = 0;
-      }
-    });
+    // 从store获取用户信息
+    const user = this.$store.getters.user;
+    if (user && user.id) {
+      this.userId = user.id;
+    }
   },
   methods: {
-    // 加载树形数据
-    loadTreeData() {
-      const username = this.$store.getters.user.username;
-      if (username) {
-        const saved = localStorage.getItem(`familyTree_${username}`);
-        if (saved) {
-          const data = JSON.parse(saved);
-          this.rootNode = data.rootNode;
-          this.nextId = data.nextId || 1;
+    // 家族表选择回调
+    onTableSelected(tableId) {
+      this.selectedFamilyTableId = tableId;
+      this.loadTreeData();
+    },
+
+    // 返回家族表选择器
+    backToSelector() {
+      this.selectedFamilyTableId = null;
+      this.rootNode = null;
+    },
+
+    // 从后端加载树形数据
+    async loadTreeData() {
+      if (!this.selectedFamilyTableId) return;
+      
+      this.loading = true;
+      try {
+        const response = await familyTreeAPI.getFamilyTree(this.selectedFamilyTableId);
+        if (response.data.success) {
+          const treeData = response.data.data;
+          if (treeData && treeData.length > 0) {
+            this.rootNode = treeData[0]; // 假设只有一个根节点
+          } else {
+            this.rootNode = null;
+          }
+        } else {
+          this.$message.error(response.data.message || '加载家谱树失败');
         }
+      } catch (error) {
+        console.error('加载家谱树失败:', error);
+        this.$message.error('加载家谱树失败，请检查网络连接');
+      } finally {
+        this.loading = false;
       }
     },
 
-    // 保存树形数据
-    saveTreeData() {
-      const username = this.$store.getters.user.username;
-      if (username) {
-        localStorage.setItem(`familyTree_${username}`, JSON.stringify({
-          rootNode: this.rootNode,
-          nextId: this.nextId
-        }));
-      }
-    },
-
-    // 生成唯一ID
-    generateId() {
-      return this.nextId++;
+    // 刷新数据
+    refreshTree() {
+      this.loadTreeData();
     },
 
     // 添加根节点
@@ -188,177 +226,69 @@ export default {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'warning'
-      }).then(() => {
-        if (node === this.rootNode) {
-          this.rootNode = null;
-        } else {
-          this.removeNodeFromParent(node);
+      }).then(async () => {
+        try {
+          const response = await familyTreeAPI.deleteNode({
+            id: node.id
+          });
+          
+          if (response.data.success) {
+            this.$message.success('删除成功');
+            this.loadTreeData(); // 重新加载数据
+          } else {
+            this.$message.error(response.data.message || '删除失败');
+          }
+        } catch (error) {
+          console.error('删除节点失败:', error);
+          this.$message.error('删除节点失败，请检查网络连接');
         }
-        this.saveTreeData();
-        this.$message.success('删除成功');
       }).catch(() => {
         // 取消删除
       });
     },
 
-    // 从父节点中删除子节点
-    removeNodeFromParent(node) {
-      const findAndRemove = (parent) => {
-        if (parent.children) {
-          const index = parent.children.findIndex(child => child.id === node.id);
-          if (index !== -1) {
-            parent.children.splice(index, 1);
-            return true;
-          }
-          for (let child of parent.children) {
-            if (findAndRemove(child)) {
-              return true;
-            }
-          }
-        }
-        return false;
-      };
-      findAndRemove(this.rootNode);
-    },
-
     // 保存节点
-    saveNode() {
-      this.$refs.nodeForm.validate((valid) => {
+    async saveNode() {
+      this.$refs.nodeForm.validate(async (valid) => {
         if (valid) {
-          // 格式化日期，只保留年月日
-          if (this.editingNode.birthDate && typeof this.editingNode.birthDate === 'string') {
-            this.editingNode.birthDate = this.editingNode.birthDate.slice(0, 10);
+          try {
+            let response;
+            const nodeData = {
+              familyTableId: this.selectedFamilyTableId,
+              name: this.editingNode.name,
+              gender: this.editingNode.gender,
+              birthDate: this.editingNode.birthDate,
+              relationship: this.editingNode.relationship
+            };
+
+            if (this.editingNode.id) {
+              // 更新节点
+              nodeData.id = this.editingNode.id;
+              response = await familyTreeAPI.updateNode(nodeData);
+            } else {
+              // 新增节点
+              if (this.editingNode.parentId) {
+                nodeData.parentId = this.editingNode.parentId;
+              }
+              if (this.editingNode.siblingOf) {
+                nodeData.siblingId = this.editingNode.siblingOf;
+              }
+              response = await familyTreeAPI.saveNode(nodeData);
+            }
+
+            if (response.data.success) {
+              this.$message.success('保存成功');
+              this.dialogVisible = false;
+              this.loadTreeData(); // 重新加载数据
+            } else {
+              this.$message.error(response.data.message || '保存失败');
+            }
+          } catch (error) {
+            console.error('保存节点失败:', error);
+            this.$message.error('保存节点失败，请检查网络连接');
           }
-          if (this.editingNode.childId) {
-            this.createParentNode(this.editingNode);
-          } else if (this.editingNode.siblingOf) {
-            this.createSiblingNode(this.editingNode);
-          } else if (this.editingNode.id) {
-            this.updateNode(this.editingNode);
-          } else {
-            this.createNode(this.editingNode);
-          }
-          this.dialogVisible = false;
-          this.saveTreeData();
-          this.$message.success('保存成功');
         }
       });
-    },
-
-    // 创建新节点
-    createNode(nodeData) {
-      const newNode = {
-        id: this.generateId(),
-        name: nodeData.name,
-        birthDate: nodeData.birthDate,
-        gender: nodeData.gender,
-        relationship: nodeData.relationship,
-        bio: nodeData.bio,
-        children: []
-      };
-
-      if (nodeData.parentId) {
-        // 添加子节点
-        this.addNodeToParent(newNode, nodeData.parentId);
-      } else {
-        // 添加根节点
-        this.rootNode = newNode;
-      }
-    },
-
-    // 更新节点
-    updateNode(nodeData) {
-      const updateNodeData = (node) => {
-        if (node.id === nodeData.id) {
-          Object.assign(node, nodeData);
-          return true;
-        }
-        if (node.children) {
-          for (let child of node.children) {
-            if (updateNodeData(child)) {
-              return true;
-            }
-          }
-        }
-        return false;
-      };
-      updateNodeData(this.rootNode);
-    },
-
-    // 将节点添加到父节点
-    addNodeToParent(newNode, parentId) {
-      const addToParent = (node) => {
-        if (node.id === parentId) {
-          if (!node.children) {
-            node.children = [];
-          }
-          node.children.push(newNode);
-          return true;
-        }
-        if (node.children) {
-          for (let child of node.children) {
-            if (addToParent(child)) {
-              return true;
-            }
-          }
-        }
-        return false;
-      };
-      addToParent(this.rootNode);
-    },
-
-    // 创建父节点
-    createParentNode(nodeData) {
-      const newNode = {
-        id: this.generateId(),
-        name: nodeData.name,
-        birthDate: nodeData.birthDate,
-        gender: nodeData.gender,
-        relationship: nodeData.relationship,
-        bio: nodeData.bio,
-        children: []
-      };
-
-      // 找到childId对应的节点
-      const findAndReplace = (parent, childId) => {
-        if (parent.id === childId) {
-          // 新父节点替换原节点
-          newNode.children = [JSON.parse(JSON.stringify(parent))];
-          // 如果是根节点
-          if (this.rootNode.id === childId) {
-            this.rootNode = newNode;
-          } else {
-            this.replaceNodeInTree(this.rootNode, childId, newNode);
-          }
-          return true;
-        }
-        if (parent.children) {
-          for (let child of parent.children) {
-            if (findAndReplace(child, childId)) {
-              return true;
-            }
-          }
-        }
-        return false;
-      };
-
-      findAndReplace(this.rootNode, nodeData.childId);
-    },
-
-    // 替换节点
-    replaceNodeInTree(parent, childId, newNode) {
-      if (!parent.children) return false;
-      const idx = parent.children.findIndex(child => child.id === childId);
-      if (idx !== -1) {
-        parent.children[idx] = newNode;
-        return true;
-      }
-      for (let child of parent.children) {
-        if (this.replaceNodeInTree(child, childId, newNode)) {
-          return true;
-        }
-      }
-      return false;
     },
 
     // 选择节点
@@ -368,13 +298,11 @@ export default {
 
     // 展开全部
     expandAll() {
-      // 这里可以添加展开逻辑，目前默认都是展开的
       this.$message.info('所有节点已展开');
     },
 
     // 收起全部
     collapseAll() {
-      // 这里可以添加收起逻辑
       this.$message.info('所有节点已收起');
     },
 
@@ -387,49 +315,43 @@ export default {
         gender: '男',
         relationship: '',
         bio: '',
-        siblingOf: node.id // 记录要添加平辈节点的目标节点id
+        siblingOf: node.id
       };
       this.dialogVisible = true;
     },
 
-    // 新增 createSiblingNode 方法
-    createSiblingNode(nodeData) {
-      const newNode = {
-        id: this.generateId(),
-        name: nodeData.name,
-        birthDate: nodeData.birthDate,
-        gender: nodeData.gender,
-        relationship: nodeData.relationship,
-        bio: nodeData.bio,
-        children: []
-      };
-
-      // 根节点不能添加平辈节点
-      if (this.rootNode.id === nodeData.siblingOf) {
-        this.$message.warning('根节点不能添加平辈节点');
-        return;
-      }
-
-      // 在树中找到 siblingOf 的父节点，并插入新节点
-      const addSibling = (parent) => {
-        if (parent.children) {
-          const idx = parent.children.findIndex(child => child.id === nodeData.siblingOf);
-          if (idx !== -1) {
-            parent.children.splice(idx + 1, 0, newNode);
-            return true;
-          }
-          for (let child of parent.children) {
-            if (addSibling(child)) return true;
-          }
-        }
-        return false;
-      };
-      addSibling(this.rootNode);
-    },
-
     formatDate(dateStr) {
       if (!dateStr) return '';
-      // 只取前10位，防止有时带时分秒
+      
+      // 如果是Date对象，转换为字符串
+      if (dateStr instanceof Date) {
+        const year = dateStr.getFullYear();
+        const month = String(dateStr.getMonth() + 1).padStart(2, '0');
+        const day = String(dateStr.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+      
+      // 如果是字符串，尝试解析并格式化
+      if (typeof dateStr === 'string') {
+        // 移除可能的时间部分
+        const dateOnly = dateStr.split('T')[0].split(' ')[0];
+        
+        // 检查是否是有效的日期格式
+        if (dateOnly.match(/^\d{4}-\d{2}-\d{2}$/)) {
+          return dateOnly;
+        }
+        
+        // 尝试解析其他格式的日期
+        const date = new Date(dateStr);
+        if (!isNaN(date.getTime())) {
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const day = String(date.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        }
+      }
+      
+      // 如果无法解析，返回原字符串的前10位（兼容旧数据）
       return dateStr.length > 10 ? dateStr.slice(0, 10) : dateStr;
     }
   }
@@ -443,6 +365,17 @@ export default {
   overflow: auto;
 }
 
+.table-selector-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+}
+
+.tree-management {
+  height: 100%;
+}
+
 .tree-header {
   display: flex;
   justify-content: space-between;
@@ -450,6 +383,12 @@ export default {
   margin-bottom: 20px;
   padding-bottom: 15px;
   border-bottom: 1px solid #e4e7ed;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 .tree-header h2 {

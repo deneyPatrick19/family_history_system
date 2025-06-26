@@ -7,7 +7,14 @@
           <el-input v-model="newMember.name" placeholder="请输入姓名" />
         </el-form-item>
         <el-form-item label="出生日期" prop="dob">
-          <el-date-picker v-model="newMember.dob" type="date" placeholder="选择日期" style="width: 100%;" />
+          <el-date-picker 
+            v-model="newMember.dob" 
+            type="date" 
+            placeholder="选择日期" 
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
+            style="width: 100%;" 
+          />
         </el-form-item>
         <el-form-item label="关系" prop="relationship">
           <el-select v-model="newMember.relationship" placeholder="请选择关系">

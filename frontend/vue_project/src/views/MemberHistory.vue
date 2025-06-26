@@ -6,8 +6,16 @@
           <el-form-item label="姓名">
             <el-input v-model="member.name" :disabled="readonly" placeholder="请输入姓名" />
           </el-form-item>
-          <el-form-item label="出生日期">
-            <el-date-picker v-model="member.dob" type="date" :disabled="readonly" placeholder="选择出生日期" style="width: 100%;" />
+          <el-form-item label="出生日期" prop="dob">
+            <el-date-picker 
+              v-model="member.dob" 
+              type="date" 
+              :disabled="readonly" 
+              placeholder="选择出生日期" 
+              format="YYYY-MM-DD"
+              value-format="YYYY-MM-DD"
+              style="width: 100%;" 
+            />
           </el-form-item>
           <el-form-item label="性别">
             <el-select v-model="member.gender" :disabled="readonly" placeholder="请选择性别" style="width: 100%;">

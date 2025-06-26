@@ -42,11 +42,12 @@ export default{
     }
     ).then(response => {
       console.log(response.data);
-      if (response.data.data.token != null) {
+      if (response.data.data && response.data.data.token != null) {
         // 使用 store 存储用户信息
         this.$store.dispatch('login', {
-          username: response.data.username || this.username,
-          token: response.data.data.token
+          username: response.data.data.username || this.username,
+          token: response.data.data.token,
+          id: response.data.data.id
         });
         this.$router.push("/home");
       } else {
@@ -54,6 +55,7 @@ export default{
       }
     }).catch((error) => {
       console.log(error);
+      alert("登录失败！请检查网络连接");
     })
   },
   }
