@@ -16,16 +16,24 @@ const router = createRouter({
       component: () => import('../views/Home.vue'),
       children:[
       {
-        path: '/member-history', name: 'memberhistory',
-        component: () => import('../views/MemberHistory.vue')
+        path: '', name: 'welcome',
+        component: () => import('../views/Welcome.vue')
       },
       {
-        path: '/add-member', name: 'addmember',
-        component: () => import('../views/AddMember.vue')
+        path: '/personal-history', name: 'personalhistory',
+        component: () => import('../views/PersonalHistory.vue')
       },
       {
         path: '/family-tree', name: 'familytree',
         component: () => import('../views/Familytree.vue')
+      },
+      {
+        path: '/member-list', name: 'memberlist',
+        component: () => import('../views/MemberList.vue')
+      },
+      {
+        path: '/family-table-manager', name: 'familytablemanager',
+        component: () => import('../views/FamilyTableManager.vue')
       },
     ]
     },

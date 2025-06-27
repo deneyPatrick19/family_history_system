@@ -30,7 +30,6 @@ api.interceptors.response.use(
     return response
   },
   error => {
-    console.error('API请求错误:', error)
     return Promise.reject(error)
   }
 )
@@ -40,6 +39,11 @@ export const familyTreeAPI = {
   // 获取家谱树数据
   getFamilyTree(familyTableId) {
     return api.get(`/family-tree/${familyTableId}`)
+  },
+
+  // 获取所有成员列表
+  getAllMembers(familyTableId) {
+    return api.get(`/family-tree/members/${familyTableId}`)
   },
 
   // 保存节点
@@ -55,6 +59,11 @@ export const familyTreeAPI = {
   // 删除节点
   deleteNode(nodeData) {
     return api.post('/family-tree/delete-node', nodeData)
+  },
+
+  // 检查节点是否已经有父节点
+  checkParent(memberId) {
+    return api.get(`/family-tree/check-parent/${memberId}`)
   }
 }
 

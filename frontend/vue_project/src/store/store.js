@@ -9,7 +9,9 @@ export default createStore({
       token: ''
     },
     // 存储家族成员信息
-    members: []
+    members: [],
+    // 存储选中的家族表ID（持久化）
+    selectedFamilyTableId: localStorage.getItem('selectedFamilyTableId') || null
   },
   
   mutations: {
@@ -31,6 +33,12 @@ export default createStore({
     // 设置家族成员列表
     SET_MEMBERS(state, members) {
       state.members = members
+    },
+    
+    // 设置选中的家族表ID
+    SET_SELECTED_FAMILY_TABLE_ID(state, familyTableId) {
+      state.selectedFamilyTableId = familyTableId
+      localStorage.setItem('selectedFamilyTableId', familyTableId)
     }
   },
   
@@ -49,9 +57,11 @@ export default createStore({
     // 退出登录
     logout({ commit }) {
       commit('CLEAR_USER')
+      commit('SET_SELECTED_FAMILY_TABLE_ID', null)
       localStorage.removeItem('token')
       localStorage.removeItem('username')
       localStorage.removeItem('userId')
+      localStorage.removeItem('selectedFamilyTableId')
     },
     
     // 初始化用户信息（从 localStorage 读取）
@@ -66,6 +76,11 @@ export default createStore({
           id: userId ? parseInt(userId) : null 
         })
       }
+    },
+    
+    // 设置选中的家族表ID
+    setSelectedFamilyTableId({ commit }, familyTableId) {
+      commit('SET_SELECTED_FAMILY_TABLE_ID', familyTableId)
     }
   },
   
@@ -77,6 +92,9 @@ export default createStore({
     isLoggedIn: state => !!state.user.token,
     
     // 获取家族成员
-    members: state => state.members
+    members: state => state.members,
+    
+    // 获取选中的家族表ID
+    selectedFamilyTableId: state => state.selectedFamilyTableId
   }
 })

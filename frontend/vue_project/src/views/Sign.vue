@@ -84,10 +84,10 @@ export default{
     ).then(response => {
       console.log(response.data);
       if (response.data){
-        alert("注册成功!");
+        this.$message.success("注册成功!");
         this.$router.push("/login")
       }else{
-        alert("注册失败！您已拥有账户或该用户名被占用")
+        this.$message.error("注册失败！您已拥有账户或该用户名被占用")
       }
     }).catch((error) => {
       console.log(error);

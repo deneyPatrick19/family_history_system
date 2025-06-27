@@ -35,9 +35,9 @@ export default {
     return {
       menuItems: [
         { id: "首页", path: "/home" },
-        { id: "个人信息", path: "/member-history" },
-        { id: "添加家族关系", path: "/add-member" },
-        { id: "家族树管理", path: "/family-tree" }
+        { id: "个人信息", path: "/personal-history" },
+        { id: "家谱表管理", path: "/family-table-manager" },
+        { id: "成员列表", path: "/member-list" }
       ]
     }
   },

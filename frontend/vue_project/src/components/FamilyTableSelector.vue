@@ -93,7 +93,6 @@ export default {
           this.$message.error(response.data.message || '加载家族表失败');
         }
       } catch (error) {
-        console.error('加载家族表失败:', error);
         this.$message.error('加载家族表失败，请检查网络连接');
       }
     },
@@ -124,7 +123,6 @@ export default {
               this.$message.error(response.data.message || '创建家族表失败');
             }
           } catch (error) {
-            console.error('创建家族表失败:', error);
             this.$message.error('创建家族表失败，请检查网络连接');
           }
         }

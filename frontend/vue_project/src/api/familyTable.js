@@ -24,11 +24,11 @@ export const familyTableAPI = {
 
   // 更新家族表
   updateFamilyTable(tableData) {
-    return api.post('/family-table/update', tableData)
+    return api.post('/family-table/update-family-table', tableData)
   },
 
   // 删除家族表
   deleteFamilyTable(id) {
-    return api.post('/family-table/delete', { id })
+    return api.post('/family-table/delete-family-table', { id })
   }
 } 

@@ -41,7 +41,6 @@ export default{
       }
     }
     ).then(response => {
-      console.log(response.data);
       if (response.data.data && response.data.data.token != null) {
         // 使用 store 存储用户信息
         this.$store.dispatch('login', {
@@ -51,11 +50,10 @@ export default{
         });
         this.$router.push("/home");
       } else {
-        alert("登录失败！您的账号或密码不正确 若没有账号 请先注册");
+        this.$message.error("登录失败！您的账号或密码不正确，若没有账号请先注册");
       }
-    }).catch((error) => {
-      console.log(error);
-      alert("登录失败！请检查网络连接");
+    }).catch(() => {
+      this.$message.error("登录失败！请检查网络连接");
     })
   },
   }

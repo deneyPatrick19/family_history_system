@@ -7,12 +7,20 @@
       <div class="node-info">
         <div class="node-name">{{ node.name }}</div>
         <div class="node-details">{{ formatDate(node.birthDate) }} | {{ node.gender }}</div>
+        <div v-if="node.deathDate" class="node-death">死亡: {{ formatDate(node.deathDate) }}</div>
+        <div v-if="node.parentName" class="node-parent">父节点: {{ node.parentName }}</div>
+        <div v-if="node.bio" class="node-bio">{{ node.bio }}</div>
       </div>
       <div class="node-actions">
         <el-button size="small" type="primary" @click.stop="addChild(node)">添加子节点</el-button>
-        <el-button size="small" type="info" @click.stop="addParent(node)">添加父节点</el-button>
-        <el-button size="small" type="warning" @click.stop="editNode(node)">编辑</el-button>
-        <el-button size="small" type="success" @click.stop="addSibling(node)">添加平辈节点</el-button>
+        <el-button 
+          size="small" 
+          type="info" 
+          @click.stop="async () => await addParent(node)"
+          :disabled="node.parentId"
+          :title="node.parentId ? '该节点已有父节点' : '添加父节点'"
+        >添加父节点</el-button>
+        <el-button size="small" type="warning" @click.stop="viewNode(node)">查看</el-button>
         <el-button size="small" type="danger" @click.stop="deleteNode(node)">删除</el-button>
       </div>
     </div>
@@ -26,26 +34,7 @@
           :selectNode="selectNode"
           :addChild="addChild"
           :addParent="addParent"
-          :editNode="editNode"
-          :addSibling="addSibling"
-          :deleteNode="deleteNode"
-          :formatDate="formatDate"
-        />
-      </div>
-    </div>
-    <div class="siblings-container" v-if="node.siblings && node.siblings.length > 0">
-      <div class="siblings-label">兄弟姐妹：</div>
-      <div class="siblings-wrapper">
-        <FamilyNode
-          v-for="sibling in node.siblings"
-          :key="sibling.id"
-          :node="sibling"
-          :selectedNode="selectedNode"
-          :selectNode="selectNode"
-          :addChild="addChild"
-          :addParent="addParent"
-          :editNode="editNode"
-          :addSibling="addSibling"
+          :viewNode="viewNode"
           :deleteNode="deleteNode"
           :formatDate="formatDate"
         />
@@ -59,7 +48,7 @@ export default {
   name: 'FamilyNode',
   props: [
     'node', 'selectedNode', 'selectNode',
-    'addChild', 'addParent', 'editNode', 'addSibling', 'deleteNode', 'formatDate'
+    'addChild', 'addParent', 'viewNode', 'deleteNode', 'formatDate'
   ]
 }
 </script>
@@ -104,6 +93,21 @@ export default {
   font-size: 12px;
   color: #909399;
 }
+.node-death {
+  font-size: 11px;
+  color: #f56c6c;
+  margin-top: 2px;
+}
+.node-parent {
+  font-size: 11px;
+  color: #67c23a;
+  margin-top: 2px;
+}
+.node-bio {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 5px;
+}
 .node-actions {
   display: flex;
   gap: 5px;
@@ -116,26 +120,6 @@ export default {
 .children-wrapper {
   display: flex;
   gap: 40px;
-  position: relative;
-}
-.siblings-container {
-  position: relative;
-  margin-top: 15px;
-  padding: 10px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
-}
-.siblings-label {
-  font-size: 12px;
-  color: #6c757d;
-  margin-bottom: 10px;
-  text-align: center;
-  font-weight: 500;
-}
-.siblings-wrapper {
-  display: flex;
-  gap: 20px;
   position: relative;
 }
 </style> 
