@@ -35,4 +35,9 @@ public class RelationServiceImpl implements RelationService {
     public boolean existsSiblingRelation(int memberId1, int memberId2) {
         return relationMapper.existsSiblingRelation(memberId1, memberId2) > 0;
     }
+    
+    @Override
+    public List<Relationship> findByMemberId2(Integer memberId2) {
+        return relationMapper.findByMemberId2(memberId2);
+    }
 }

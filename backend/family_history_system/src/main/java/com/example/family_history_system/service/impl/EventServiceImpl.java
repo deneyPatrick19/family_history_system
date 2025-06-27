@@ -27,5 +27,8 @@ public class EventServiceImpl implements EventService {
     public List<Event> findAll(){
         return eventMapper.findAllEvent();
     }
+    public List<Event> findByMemberId(Integer memberId){
+        return eventMapper.findByMemberId(memberId);
+    }
 
 }

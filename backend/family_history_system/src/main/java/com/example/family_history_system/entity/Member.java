@@ -17,5 +17,5 @@ public class Member {
     private String gender;
     private Date birthdate;
     private Date deathdate;
-    private String icon;
+    private String bio;
 }

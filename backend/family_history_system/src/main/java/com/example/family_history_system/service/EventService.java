@@ -8,4 +8,5 @@ public interface EventService {
     int updateById(Event event);
     Event findById(Integer id);
     List<Event> findAll();
+    List<Event> findByMemberId(Integer memberId);
 }

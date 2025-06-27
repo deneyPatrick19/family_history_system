@@ -12,7 +12,7 @@ import java.util.HashMap;
 @RestController
 @RequestMapping("/family-table")
 @CrossOrigin
-public class FamilyTableController {
+public class Family_tableController {
 
     @Autowired
     private Family_tableService familyTableService;
@@ -87,6 +87,45 @@ public class FamilyTableController {
             result.put("message", "创建家族表失败: " + e.getMessage());
         }
         
+        return result;
+    }
+
+    /**
+     * 编辑家族表
+     */
+    @PostMapping("/update-family-table")
+    public Map<String, Object> updateFamilyTable(@RequestBody Map<String, Object> tableData) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            Family_table familyTable = new Family_table();
+            familyTable.setId(((Number) tableData.get("id")).intValue());
+            familyTable.setTable_name((String) tableData.get("tableName"));
+            familyTable.setContent((String) tableData.get("content"));
+            int updateRes = familyTableService.update(familyTable);
+            result.put("success", updateRes > 0);
+            result.put("message", updateRes > 0 ? "编辑家族表成功" : "编辑家族表失败");
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "编辑家族表失败: " + e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * 删除家族表
+     */
+    @PostMapping("/delete-family-table")
+    public Map<String, Object> deleteFamilyTable(@RequestBody Map<String, Object> tableData) {
+        Map<String, Object> result = new HashMap<>();
+        try {
+            Integer id = ((Number) tableData.get("id")).intValue();
+            int delRes = familyTableService.delete(id);
+            result.put("success", delRes > 0);
+            result.put("message", delRes > 0 ? "删除家族表成功" : "删除家族表失败");
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "删除家族表失败: " + e.getMessage());
+        }
         return result;
     }
 } 

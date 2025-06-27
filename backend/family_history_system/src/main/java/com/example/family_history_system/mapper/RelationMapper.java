@@ -45,4 +45,12 @@ public interface RelationMapper extends BaseMapper<Relationship> {
 
     @Select("SELECT COUNT(*) FROM `system`.relationship WHERE relation = '兄弟' AND ((member_id1 = #{memberId1} AND member_id2 = #{memberId2}) OR (member_id1 = #{memberId2} AND member_id2 = #{memberId1}))")
     int existsSiblingRelation(@Param("memberId1") int memberId1, @Param("memberId2") int memberId2);
+
+    @Select("select * from `system`.relationship where member_id2=#{memberId2}")
+    @Results({
+            @Result(property = "member_id1", column = "member_id1", id = true,jdbcType = JdbcType.INTEGER),
+            @Result(property = "member_id2", column = "member_id2", id = true,jdbcType = JdbcType.INTEGER),
+            @Result(property = "relation", column = "relation", jdbcType = JdbcType.VARCHAR)
+    })
+    List<Relationship> findByMemberId2(@Param("memberId2") Integer memberId2);
 }

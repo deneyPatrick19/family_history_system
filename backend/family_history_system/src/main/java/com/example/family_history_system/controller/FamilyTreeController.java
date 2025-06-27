@@ -27,7 +27,6 @@ public class FamilyTreeController {
     @GetMapping("/{familyTableId}")
     public Map<String, Object> getFamilyTree(@PathVariable Integer familyTableId) {
         Map<String, Object> result = new HashMap<>();
-        
         try {
             // 获取该家族表下的所有成员
             List<Member> members = memberService.findByFamilyTableId(familyTableId);
@@ -62,12 +61,20 @@ public class FamilyTreeController {
             member.setFamily_table_id(((Number) nodeData.get("familyTableId")).intValue());
             member.setName((String) nodeData.get("name"));
             member.setGender((String) nodeData.get("gender"));
+            member.setBio((String) nodeData.get("bio"));
             
             // 处理日期
             if (nodeData.get("birthDate") != null && !((String) nodeData.get("birthDate")).isEmpty()) {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 Date birthDate = sdf.parse((String) nodeData.get("birthDate"));
                 member.setBirthdate(new java.sql.Date(birthDate.getTime()));
+            }
+            
+            // 处理死亡日期
+            if (nodeData.get("deathDate") != null && !((String) nodeData.get("deathDate")).isEmpty()) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                Date deathDate = sdf.parse((String) nodeData.get("deathDate"));
+                member.setDeathdate(new java.sql.Date(deathDate.getTime()));
             }
             
             memberService.insertMember(member);
@@ -82,10 +89,13 @@ public class FamilyTreeController {
                 relationService.insertRelation(relation);
             }
             
-            // 如果有兄弟姐妹关系，保存关系
-            if (nodeData.get("siblingId") != null) {
-                saveSiblingRelation(memberId, ((Number) nodeData.get("siblingId")).intValue(), 
-                                  (String) nodeData.get("relationship"));
+            // 如果有子节点关系（添加父节点的情况），保存关系
+            if (nodeData.get("childId") != null) {
+                Relationship relation = new Relationship();
+                relation.setMember_id1(memberId);
+                relation.setMember_id2(((Number) nodeData.get("childId")).intValue());
+                relation.setRelation((String) nodeData.get("relationship"));
+                relationService.insertRelation(relation);
             }
             
             result.put("success", true);
@@ -101,62 +111,6 @@ public class FamilyTreeController {
     }
 
     /**
-     * 保存兄弟姐妹关系
-     */
-    private void saveSiblingRelation(Integer memberId1, Integer memberId2, String relationship) {
-        // 根据性别确定具体的关系类型
-        Member member1 = memberService.findById(memberId1);
-        Member member2 = memberService.findById(memberId2);
-        
-        if (member1 != null && member2 != null) {
-            String relationType = determineSiblingRelation(member1.getGender(), member2.getGender(), relationship);
-            
-            // 保存双向关系
-            Relationship relation1 = new Relationship();
-            relation1.setMember_id1(memberId1);
-            relation1.setMember_id2(memberId2);
-            relation1.setRelation(relationType);
-            relationService.insertRelation(relation1);
-            
-            Relationship relation2 = new Relationship();
-            relation2.setMember_id1(memberId2);
-            relation2.setMember_id2(memberId1);
-            relation2.setRelation(getReverseRelation(relationType));
-            relationService.insertRelation(relation2);
-        }
-    }
-
-    /**
-     * 确定兄弟姐妹关系类型
-     */
-    private String determineSiblingRelation(String gender1, String gender2, String relationship) {
-        if (gender1.equals("男") && gender2.equals("男")) {
-            return "兄弟";
-        } else if (gender1.equals("女") && gender2.equals("女")) {
-            return "姐妹";
-        } else if (gender1.equals("男") && gender2.equals("女")) {
-            return "兄妹";
-        } else if (gender1.equals("女") && gender2.equals("男")) {
-            return "姐弟";
-        } else {
-            return relationship; // 使用传入的关系类型
-        }
-    }
-
-    /**
-     * 获取反向关系
-     */
-    private String getReverseRelation(String relation) {
-        switch (relation) {
-            case "兄弟": return "兄弟";
-            case "姐妹": return "姐妹";
-            case "兄妹": return "兄妹";
-            case "姐弟": return "姐弟";
-            default: return relation;
-        }
-    }
-
-    /**
      * 更新家谱树节点
      */
     @PostMapping("/update-node")
@@ -168,6 +122,7 @@ public class FamilyTreeController {
             member.setId(((Number) nodeData.get("id")).intValue());
             member.setName((String) nodeData.get("name"));
             member.setGender((String) nodeData.get("gender"));
+            member.setBio((String) nodeData.get("bio"));
             
             // 处理日期
             if (nodeData.get("birthDate") != null && !((String) nodeData.get("birthDate")).isEmpty()) {
@@ -176,7 +131,32 @@ public class FamilyTreeController {
                 member.setBirthdate(new java.sql.Date(birthDate.getTime()));
             }
             
+            // 处理死亡日期
+            if (nodeData.get("deathDate") != null && !((String) nodeData.get("deathDate")).isEmpty()) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                Date deathDate = sdf.parse((String) nodeData.get("deathDate"));
+                member.setDeathdate(new java.sql.Date(deathDate.getTime()));
+            }
+            
             memberService.updateMember(member);
+            
+            // 更新关系信息
+            if (nodeData.get("relationship") != null) {
+                String newRelationship = (String) nodeData.get("relationship");
+                Integer memberId = member.getId();
+                
+                // 查找该成员作为子节点的关系
+                List<Relationship> parentRelations = relationService.findByMemberId2(memberId);
+                for (Relationship relation : parentRelations) {
+                    if (relation.getRelation().equals("父亲") || relation.getRelation().equals("母亲") || 
+                        relation.getRelation().equals("儿子") || relation.getRelation().equals("女儿")) {
+                        // 更新关系
+                        relation.setRelation(newRelationship);
+                        relationService.updateRelationById(relation);
+                        break; // 只更新第一个找到的关系
+                    }
+                }
+            }
             
             result.put("success", true);
             result.put("message", "更新节点成功");
@@ -184,6 +164,44 @@ public class FamilyTreeController {
         } catch (Exception e) {
             result.put("success", false);
             result.put("message", "更新节点失败: " + e.getMessage());
+        }
+        
+        return result;
+    }
+
+    /**
+     * 检查节点是否已经有父节点
+     */
+    @GetMapping("/check-parent/{memberId}")
+    public Map<String, Object> checkParent(@PathVariable Integer memberId) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // 查找该成员作为子节点的关系
+            List<Relationship> parentRelations = relationService.findByMemberId2(memberId);
+            boolean hasParent = false;
+            String parentName = null;
+            
+            for (Relationship relation : parentRelations) {
+                // 修复关系匹配逻辑：识别所有父子关系类型
+                if (relation.getRelation().equals("父亲") || relation.getRelation().equals("母亲")) {
+                    hasParent = true;
+                    Member parent = memberService.findById(relation.getMember_id1());
+                    if (parent != null) {
+                        parentName = parent.getName();
+                    }
+                    break; // 只取第一个父节点
+                }
+            }
+            
+            result.put("success", true);
+            result.put("hasParent", hasParent);
+            result.put("parentName", parentName);
+            result.put("message", hasParent ? "该节点已有父节点" : "该节点没有父节点");
+            
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "检查父节点失败: " + e.getMessage());
         }
         
         return result;
@@ -222,8 +240,8 @@ public class FamilyTreeController {
     private List<Map<String, Object>> buildFamilyTree(List<Member> members, List<Relationship> relationships) {
         Map<Integer, Map<String, Object>> memberMap = new HashMap<>();
         Map<Integer, List<Integer>> childrenMap = new HashMap<>();
-        Map<Integer, List<Integer>> siblingsMap = new HashMap<>();
         Map<Integer, Integer> parentMap = new HashMap<>();
+        Map<Integer, String> relationshipMap = new HashMap<>(); // 存储关系信息
         
         // 初始化成员映射
         for (Member member : members) {
@@ -233,65 +251,47 @@ public class FamilyTreeController {
             node.put("gender", member.getGender());
             node.put("birthDate", member.getBirthdate());
             node.put("deathDate", member.getDeathdate());
-            node.put("icon", member.getIcon());
+            node.put("bio", member.getBio());
             node.put("children", new ArrayList<>());
-            node.put("siblings", new ArrayList<>());
             
             memberMap.put(member.getId(), node);
             childrenMap.put(member.getId(), new ArrayList<>());
-            siblingsMap.put(member.getId(), new ArrayList<>());
         }
         
-        // 构建父子关系和兄弟姐妹关系
+        // 构建父子关系
         for (Relationship relation : relationships) {
             String relationType = relation.getRelation();
             
-            if (relationType.contains("父") || relationType.contains("子")) {
+            // 修复关系匹配逻辑：识别所有父子关系类型
+            if (relationType.equals("父亲") || relationType.equals("母亲") || 
+                relationType.equals("儿子") || relationType.equals("女儿")) {
                 // 父子关系
                 List<Integer> children = childrenMap.get(relation.getMember_id1());
                 if (children != null) {
                     children.add(relation.getMember_id2());
                 }
                 parentMap.put(relation.getMember_id2(), relation.getMember_id1());
-            } else if (relationType.contains("兄") || relationType.contains("弟") || 
-                      relationType.contains("姐") || relationType.contains("妹") ||
-                      relationType.contains("兄弟") || relationType.contains("姐妹")) {
-                // 兄弟姐妹关系
-                List<Integer> siblings1 = siblingsMap.get(relation.getMember_id1());
-                if (siblings1 != null) {
-                    siblings1.add(relation.getMember_id2());
-                }
-                
-                List<Integer> siblings2 = siblingsMap.get(relation.getMember_id2());
-                if (siblings2 != null) {
-                    siblings2.add(relation.getMember_id1());
-                }
+                // 存储关系信息
+                relationshipMap.put(relation.getMember_id2(), relationType);
             }
         }
         
-        // 将兄弟姐妹信息添加到节点数据中
-        for (Map.Entry<Integer, List<Integer>> entry : siblingsMap.entrySet()) {
-            Integer memberId = entry.getKey();
-            List<Integer> siblingIds = entry.getValue();
+        // 添加父节点信息和关系信息到节点数据中
+        for (Map.Entry<Integer, Integer> entry : parentMap.entrySet()) {
+            Integer childId = entry.getKey();
+            Integer parentId = entry.getValue();
             
-            Map<String, Object> node = memberMap.get(memberId);
-            if (node != null && !siblingIds.isEmpty()) {
-                List<Map<String, Object>> siblings = new ArrayList<>();
-                for (Integer siblingId : siblingIds) {
-                    Map<String, Object> siblingNode = memberMap.get(siblingId);
-                    if (siblingNode != null) {
-                        // 只取基本字段，避免递归
-                        Map<String, Object> simpleSibling = new HashMap<>();
-                        simpleSibling.put("id", siblingNode.get("id"));
-                        simpleSibling.put("name", siblingNode.get("name"));
-                        simpleSibling.put("gender", siblingNode.get("gender"));
-                        simpleSibling.put("birthDate", siblingNode.get("birthDate"));
-                        simpleSibling.put("deathDate", siblingNode.get("deathDate"));
-                        simpleSibling.put("icon", siblingNode.get("icon"));
-                        siblings.add(simpleSibling);
-                    }
+            Map<String, Object> childNode = memberMap.get(childId);
+            Map<String, Object> parentNode = memberMap.get(parentId);
+            
+            if (childNode != null && parentNode != null) {
+                childNode.put("parentId", parentId);
+                childNode.put("parentName", parentNode.get("name"));
+                // 添加关系信息
+                String relationship = relationshipMap.get(childId);
+                if (relationship != null) {
+                    childNode.put("relationship", relationship);
                 }
-                node.put("siblings", siblings);
             }
         }
         
@@ -300,7 +300,9 @@ public class FamilyTreeController {
         Set<Integer> hasParent = new HashSet<>();
         
         for (Relationship relation : relationships) {
-            if (relation.getRelation().contains("父") || relation.getRelation().contains("子")) {
+            // 修复关系匹配逻辑：识别所有父子关系类型
+            if (relation.getRelation().equals("父亲") || relation.getRelation().equals("母亲") || 
+                relation.getRelation().equals("儿子") || relation.getRelation().equals("女儿")) {
                 hasParent.add(relation.getMember_id2());
             }
         }
@@ -309,7 +311,7 @@ public class FamilyTreeController {
             if (!hasParent.contains(member.getId())) {
                 // 这是一个根节点
                 Map<String, Object> rootNode = memberMap.get(member.getId());
-                buildChildrenWithSiblings(rootNode, childrenMap, siblingsMap, parentMap, memberMap);
+                buildChildren(rootNode, childrenMap, parentMap, memberMap);
                 rootNodes.add(rootNode);
             }
         }
@@ -318,17 +320,16 @@ public class FamilyTreeController {
     }
 
     /**
-     * 递归构建子节点，包含兄弟姐妹关系
+     * 递归构建子节点
      */
-    private void buildChildrenWithSiblings(Map<String, Object> parentNode, Map<Integer, List<Integer>> childrenMap, 
-                                         Map<Integer, List<Integer>> siblingsMap, Map<Integer, Integer> parentMap,
-                                         Map<Integer, Map<String, Object>> memberMap) {
+    private void buildChildren(Map<String, Object> parentNode, Map<Integer, List<Integer>> childrenMap, 
+                              Map<Integer, Integer> parentMap, Map<Integer, Map<String, Object>> memberMap) {
         Integer parentId = (Integer) parentNode.get("id");
         List<Integer> childrenIds = childrenMap.get(parentId);
         
+        List<Map<String, Object>> children = new ArrayList<>();
+        
         if (childrenIds != null && !childrenIds.isEmpty()) {
-            List<Map<String, Object>> children = new ArrayList<>();
-            
             // 按出生日期排序（如果有的话）
             childrenIds.sort((id1, id2) -> {
                 Map<String, Object> node1 = memberMap.get(id1);
@@ -347,32 +348,80 @@ public class FamilyTreeController {
                 Map<String, Object> childNode = memberMap.get(childId);
                 if (childNode != null) {
                     // 递归构建子节点
-                    buildChildrenWithSiblings(childNode, childrenMap, siblingsMap, parentMap, memberMap);
+                    buildChildren(childNode, childrenMap, parentMap, memberMap);
                     children.add(childNode);
                 }
             }
-            parentNode.put("children", children);
         }
+        
+        // 无论是否有子节点，都设置children列表
+        parentNode.put("children", children);
+    }
 
-        // siblings只展示基本信息，不递归嵌套
-        List<Integer> siblingIds = siblingsMap.get(parentId);
-        if (siblingIds != null && !siblingIds.isEmpty()) {
-            List<Map<String, Object>> siblings = new ArrayList<>();
-            for (Integer siblingId : siblingIds) {
-                Map<String, Object> siblingNode = memberMap.get(siblingId);
-                if (siblingNode != null) {
-                    // 只取基本字段，避免递归
-                    Map<String, Object> simpleSibling = new HashMap<>();
-                    simpleSibling.put("id", siblingNode.get("id"));
-                    simpleSibling.put("name", siblingNode.get("name"));
-                    simpleSibling.put("gender", siblingNode.get("gender"));
-                    simpleSibling.put("birthDate", siblingNode.get("birthDate"));
-                    simpleSibling.put("deathDate", siblingNode.get("deathDate"));
-                    simpleSibling.put("icon", siblingNode.get("icon"));
-                    siblings.add(simpleSibling);
+    /**
+     * 获取指定家族表的所有成员列表
+     */
+    @GetMapping("/members/{familyTableId}")
+    public Map<String, Object> getAllMembers(@PathVariable Integer familyTableId) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // 获取该家族表下的所有成员
+            List<Member> members = memberService.findByFamilyTableId(familyTableId);
+            
+            // 获取所有关系
+            List<Relationship> relationships = relationService.findAllRelation();
+            
+            // 构建成员列表，包含关系信息
+            List<Map<String, Object>> memberList = new ArrayList<>();
+            
+            for (Member member : members) {
+                Map<String, Object> memberInfo = new HashMap<>();
+                memberInfo.put("id", member.getId());
+                memberInfo.put("name", member.getName());
+                memberInfo.put("gender", member.getGender());
+                memberInfo.put("birthDate", member.getBirthdate());
+                memberInfo.put("deathDate", member.getDeathdate());
+                memberInfo.put("bio", member.getBio());
+                
+                // 查找父节点信息和关系信息
+                String parentName = null;
+                String relationship = null;
+                for (Relationship relation : relationships) {
+                    if (relation.getMember_id2().equals(member.getId()) && 
+                        (relation.getRelation().equals("父亲") || relation.getRelation().equals("母亲") ||
+                         relation.getRelation().equals("儿子") || relation.getRelation().equals("女儿"))) {
+                        Member parent = memberService.findById(relation.getMember_id1());
+                        if (parent != null) {
+                            parentName = parent.getName();
+                            relationship = relation.getRelation();
+                        }
+                        break;
+                    }
                 }
+                
+                memberInfo.put("parentName", parentName);
+                memberInfo.put("relationship", relationship);
+                
+                memberList.add(memberInfo);
             }
-            parentNode.put("siblings", siblings);
+            
+            // 按姓名排序
+            memberList.sort((a, b) -> {
+                String nameA = (String) a.get("name");
+                String nameB = (String) b.get("name");
+                return nameA.compareTo(nameB);
+            });
+            
+            result.put("success", true);
+            result.put("data", memberList);
+            result.put("message", "获取成员列表成功");
+            
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "获取成员列表失败: " + e.getMessage());
         }
+        
+        return result;
     }
 } 
