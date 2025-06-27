@@ -112,16 +112,16 @@ public class Family_tableController {
     }
 
     /**
-     * 删除家族表
+     * 删除家族表（级联删除所有相关数据）
      */
     @PostMapping("/delete-family-table")
     public Map<String, Object> deleteFamilyTable(@RequestBody Map<String, Object> tableData) {
         Map<String, Object> result = new HashMap<>();
         try {
             Integer id = ((Number) tableData.get("id")).intValue();
-            int delRes = familyTableService.delete(id);
-            result.put("success", delRes > 0);
-            result.put("message", delRes > 0 ? "删除家族表成功" : "删除家族表失败");
+            familyTableService.deleteFamilyTableAndAllData(id);
+            result.put("success", true);
+            result.put("message", "删除家族表及其所有数据成功");
         } catch (Exception e) {
             result.put("success", false);
             result.put("message", "删除家族表失败: " + e.getMessage());

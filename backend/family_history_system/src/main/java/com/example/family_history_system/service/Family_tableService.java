@@ -28,4 +28,9 @@ public interface Family_tableService {
     default Family_table findById(Integer id) {
         return findFamily_table(id);
     }
+
+    /**
+     * 级联删除家谱表及其所有成员、关系、事件等
+     */
+    void deleteFamilyTableAndAllData(Integer familyTableId);
 }

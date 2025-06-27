@@ -27,4 +27,7 @@ public interface EventMapper extends BaseMapper<Event> {
             @Result(property = "event_description", column = "event_description", jdbcType = JdbcType.VARCHAR),
     })
     List<Event> findByMemberId(Integer memberId);
+
+    @Delete("delete from `system`.event where member_id in (select id from `system`.member where family_table_id = #{familyTableId})")
+    int deleteByFamilyTableId(@Param("familyTableId") Integer familyTableId);
 }

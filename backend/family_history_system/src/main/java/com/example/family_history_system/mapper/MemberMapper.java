@@ -1,10 +1,12 @@
 package com.example.family_history_system.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.family_history_system.entity.Member;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Result;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.type.JdbcType;
 import java.util.List;
 
@@ -32,4 +34,7 @@ public interface MemberMapper extends BaseMapper<Member> {
             @Result(property = "icon", column = "icon", jdbcType = JdbcType.VARCHAR),
     })
     List<Member> selectByFamilyTableId(Integer familyTableId);
+
+    @Delete("delete from `system`.member where family_table_id = #{familyTableId}")
+    int deleteByFamilyTableId(@Param("familyTableId") Integer familyTableId);
 }

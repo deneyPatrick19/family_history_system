@@ -53,4 +53,7 @@ public interface RelationMapper extends BaseMapper<Relationship> {
             @Result(property = "relation", column = "relation", jdbcType = JdbcType.VARCHAR)
     })
     List<Relationship> findByMemberId2(@Param("memberId2") Integer memberId2);
+
+    @Delete("delete from `system`.relationship where member_id1 in (select id from `system`.member where family_table_id = #{familyTableId}) or member_id2 in (select id from `system`.member where family_table_id = #{familyTableId})")
+    int deleteByFamilyTableId(@Param("familyTableId") Integer familyTableId);
 }
