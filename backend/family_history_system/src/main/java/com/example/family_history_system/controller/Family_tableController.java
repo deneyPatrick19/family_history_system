@@ -42,13 +42,9 @@ public class Family_tableController {
         return familyTableService.findAll();
     }
 
-    /**
-     * 获取用户的家族表列表
-     */
     @GetMapping("/user/{userId}")
     public Map<String, Object> getUserFamilyTables(@PathVariable Integer userId) {
         Map<String, Object> result = new HashMap<>();
-        
         try {
             List<Family_table> familyTables = familyTableService.findByUserId(userId);
             result.put("success", true);
@@ -58,13 +54,9 @@ public class Family_tableController {
             result.put("success", false);
             result.put("message", "获取用户家族表失败: " + e.getMessage());
         }
-        
         return result;
     }
 
-    /**
-     * 创建新的家族表
-     */
     @PostMapping("/create")
     public Map<String, Object> createFamilyTable(@RequestBody Map<String, Object> tableData) {
         Map<String, Object> result = new HashMap<>();
@@ -86,13 +78,9 @@ public class Family_tableController {
             result.put("success", false);
             result.put("message", "创建家族表失败: " + e.getMessage());
         }
-        
         return result;
     }
 
-    /**
-     * 编辑家族表
-     */
     @PostMapping("/update-family-table")
     public Map<String, Object> updateFamilyTable(@RequestBody Map<String, Object> tableData) {
         Map<String, Object> result = new HashMap<>();
@@ -111,9 +99,6 @@ public class Family_tableController {
         return result;
     }
 
-    /**
-     * 删除家族表（级联删除所有相关数据）
-     */
     @PostMapping("/delete-family-table")
     public Map<String, Object> deleteFamilyTable(@RequestBody Map<String, Object> tableData) {
         Map<String, Object> result = new HashMap<>();

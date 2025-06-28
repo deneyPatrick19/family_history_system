@@ -17,23 +17,18 @@ public class FamilyTreeController {
 
     @Autowired
     private MemberService memberService;
-
     @Autowired
     private RelationService relationService;
 
-    /**
-     * 获取指定家族表的家谱树数据
-     */
+    //获取指定家族表的家谱树数据
     @GetMapping("/{familyTableId}")
     public Map<String, Object> getFamilyTree(@PathVariable Integer familyTableId) {
         Map<String, Object> result = new HashMap<>();
         try {
             // 获取该家族表下的所有成员
             List<Member> members = memberService.findByFamilyTableId(familyTableId);
-            
             // 获取所有关系
             List<Relationship> relationships = relationService.findAllRelation();
-            
             // 构建家谱树
             List<Map<String, Object>> treeData = buildFamilyTree(members, relationships);
             
@@ -45,13 +40,10 @@ public class FamilyTreeController {
             result.put("success", false);
             result.put("message", "获取家谱树失败: " + e.getMessage());
         }
-        
         return result;
     }
 
-    /**
-     * 保存家谱树节点
-     */
+     //保存家谱树节点
     @PostMapping("/save-node")
     public Map<String, Object> saveNode(@RequestBody Map<String, Object> nodeData) {
         Map<String, Object> result = new HashMap<>();
@@ -110,9 +102,7 @@ public class FamilyTreeController {
         return result;
     }
 
-    /**
-     * 更新家谱树节点
-     */
+     //更新家谱树节点
     @PostMapping("/update-node")
     public Map<String, Object> updateNode(@RequestBody Map<String, Object> nodeData) {
         Map<String, Object> result = new HashMap<>();
@@ -169,9 +159,7 @@ public class FamilyTreeController {
         return result;
     }
 
-    /**
-     * 检查节点是否已经有父节点
-     */
+     //检查节点是否已经有父节点
     @GetMapping("/check-parent/{memberId}")
     public Map<String, Object> checkParent(@PathVariable Integer memberId) {
         Map<String, Object> result = new HashMap<>();
@@ -207,9 +195,7 @@ public class FamilyTreeController {
         return result;
     }
 
-    /**
-     * 删除家谱树节点
-     */
+     //删除家谱树节点
     @PostMapping("/delete-node")
     public Map<String, Object> deleteNode(@RequestBody Map<String, Object> nodeData) {
         Map<String, Object> result = new HashMap<>();
@@ -219,7 +205,6 @@ public class FamilyTreeController {
             
             // 删除相关的关系
             relationService.deleteRelationsByMemberId(memberId);
-            
             // 删除成员
             memberService.deleteMember(memberId);
             
@@ -234,9 +219,7 @@ public class FamilyTreeController {
         return result;
     }
 
-    /**
-     * 构建家谱树结构
-     */
+     //构建家谱树结构
     private List<Map<String, Object>> buildFamilyTree(List<Member> members, List<Relationship> relationships) {
         Map<Integer, Map<String, Object>> memberMap = new HashMap<>();
         Map<Integer, List<Integer>> childrenMap = new HashMap<>();

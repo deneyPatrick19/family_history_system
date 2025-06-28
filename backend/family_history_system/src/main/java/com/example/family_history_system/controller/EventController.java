@@ -15,9 +15,6 @@ public class EventController {
     @Autowired
     private EventService eventService;
 
-    /**
-     * 获取指定成员的所有事件
-     */
     @GetMapping("/member/{memberId}")
     public Map<String, Object> getMemberEvents(@PathVariable Integer memberId) {
         Map<String, Object> result = new HashMap<>();

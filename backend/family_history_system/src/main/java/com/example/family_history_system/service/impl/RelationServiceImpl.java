@@ -3,7 +3,6 @@ package com.example.family_history_system.service.impl;
 import com.example.family_history_system.entity.Relationship;
 import com.example.family_history_system.mapper.RelationMapper;
 import com.example.family_history_system.service.RelationService;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -31,11 +30,7 @@ public class RelationServiceImpl implements RelationService {
     public int deleteRelationsByMemberId(Integer memberId){
         return relationMapper.deleteRelationsByMemberId(memberId);
     }
-    @Override
-    public boolean existsSiblingRelation(int memberId1, int memberId2) {
-        return relationMapper.existsSiblingRelation(memberId1, memberId2) > 0;
-    }
-    
+
     @Override
     public List<Relationship> findByMemberId2(Integer memberId2) {
         return relationMapper.findByMemberId2(memberId2);

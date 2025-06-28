@@ -10,6 +10,5 @@ public interface RelationService {
     int deleteRelationById(Integer id1, Integer id2);
     int updateRelationById(Relationship relation);
     int deleteRelationsByMemberId(Integer memberId);
-    boolean existsSiblingRelation(int memberId1, int memberId2);
     List<Relationship> findByMemberId2(Integer memberId2);
 }
