@@ -4,6 +4,7 @@ import com.example.family_history_system.entity.Member;
 import com.example.family_history_system.entity.Relationship;
 import com.example.family_history_system.service.MemberService;
 import com.example.family_history_system.service.RelationService;
+import com.example.family_history_system.service.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +20,8 @@ public class FamilyTreeController {
     private MemberService memberService;
     @Autowired
     private RelationService relationService;
+    @Autowired
+    private EventService eventService;
 
     //获取指定家族表的家谱树数据
     @GetMapping("/{familyTableId}")
@@ -50,7 +53,17 @@ public class FamilyTreeController {
         
         try {
             Member member = new Member();
-            member.setFamily_table_id(((Number) nodeData.get("familyTableId")).intValue());
+            
+            // 安全地转换familyTableId
+            Object familyTableIdObj = nodeData.get("familyTableId");
+            if (familyTableIdObj instanceof Number) {
+                member.setFamily_table_id(((Number) familyTableIdObj).intValue());
+            } else if (familyTableIdObj instanceof String) {
+                member.setFamily_table_id(Integer.parseInt((String) familyTableIdObj));
+            } else {
+                throw new IllegalArgumentException("familyTableId must be a number");
+            }
+            
             member.setName((String) nodeData.get("name"));
             member.setGender((String) nodeData.get("gender"));
             member.setBio((String) nodeData.get("bio"));
@@ -75,7 +88,17 @@ public class FamilyTreeController {
             // 如果有父节点关系，保存关系
             if (nodeData.get("parentId") != null) {
                 Relationship relation = new Relationship();
-                relation.setMember_id1(((Number) nodeData.get("parentId")).intValue());
+                
+                // 安全地转换parentId
+                Object parentIdObj = nodeData.get("parentId");
+                if (parentIdObj instanceof Number) {
+                    relation.setMember_id1(((Number) parentIdObj).intValue());
+                } else if (parentIdObj instanceof String) {
+                    relation.setMember_id1(Integer.parseInt((String) parentIdObj));
+                } else {
+                    throw new IllegalArgumentException("parentId must be a number");
+                }
+                
                 relation.setMember_id2(memberId);
                 relation.setRelation((String) nodeData.get("relationship"));
                 relationService.insertRelation(relation);
@@ -85,7 +108,17 @@ public class FamilyTreeController {
             if (nodeData.get("childId") != null) {
                 Relationship relation = new Relationship();
                 relation.setMember_id1(memberId);
-                relation.setMember_id2(((Number) nodeData.get("childId")).intValue());
+                
+                // 安全地转换childId
+                Object childIdObj = nodeData.get("childId");
+                if (childIdObj instanceof Number) {
+                    relation.setMember_id2(((Number) childIdObj).intValue());
+                } else if (childIdObj instanceof String) {
+                    relation.setMember_id2(Integer.parseInt((String) childIdObj));
+                } else {
+                    throw new IllegalArgumentException("childId must be a number");
+                }
+                
                 relation.setRelation((String) nodeData.get("relationship"));
                 relationService.insertRelation(relation);
             }
@@ -109,7 +142,17 @@ public class FamilyTreeController {
         
         try {
             Member member = new Member();
-            member.setId(((Number) nodeData.get("id")).intValue());
+            
+            // 安全地转换id
+            Object idObj = nodeData.get("id");
+            if (idObj instanceof Number) {
+                member.setId(((Number) idObj).intValue());
+            } else if (idObj instanceof String) {
+                member.setId(Integer.parseInt((String) idObj));
+            } else {
+                throw new IllegalArgumentException("id must be a number");
+            }
+            
             member.setName((String) nodeData.get("name"));
             member.setGender((String) nodeData.get("gender"));
             member.setBio((String) nodeData.get("bio"));
@@ -201,8 +244,19 @@ public class FamilyTreeController {
         Map<String, Object> result = new HashMap<>();
         
         try {
-            Integer memberId = ((Number) nodeData.get("id")).intValue();
+            // 安全地转换id
+            Object idObj = nodeData.get("id");
+            Integer memberId;
+            if (idObj instanceof Number) {
+                memberId = ((Number) idObj).intValue();
+            } else if (idObj instanceof String) {
+                memberId = Integer.parseInt((String) idObj);
+            } else {
+                throw new IllegalArgumentException("id must be a number");
+            }
             
+            // 删除相关的事件
+            eventService.deleteByMemberId(memberId);
             // 删除相关的关系
             relationService.deleteRelationsByMemberId(memberId);
             // 删除成员

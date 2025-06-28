@@ -5,7 +5,6 @@ import com.example.family_history_system.mapper.UserMapper;
 import com.example.family_history_system.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import sun.text.normalizer.IntTrie;
 
 import java.util.List;
 

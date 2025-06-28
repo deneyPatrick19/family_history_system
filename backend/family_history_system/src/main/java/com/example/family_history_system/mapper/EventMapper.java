@@ -28,6 +28,9 @@ public interface EventMapper extends BaseMapper<Event> {
     })
     List<Event> findByMemberId(Integer memberId);
 
+    @Delete("delete from `system`.event where member_id = #{memberId}")
+    int deleteByMemberId(@Param("memberId") Integer memberId);
+
     @Delete("delete from `system`.event where member_id in (select id from `system`.member where family_table_id = #{familyTableId})")
     int deleteByFamilyTableId(@Param("familyTableId") Integer familyTableId);
 }

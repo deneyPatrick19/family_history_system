@@ -9,4 +9,5 @@ public interface EventService {
     Event findById(Integer id);
     List<Event> findAll();
     List<Event> findByMemberId(Integer memberId);
+    int deleteByMemberId(Integer memberId);
 }

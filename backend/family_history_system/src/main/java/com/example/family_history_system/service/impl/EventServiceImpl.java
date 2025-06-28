@@ -30,5 +30,8 @@ public class EventServiceImpl implements EventService {
     public List<Event> findByMemberId(Integer memberId){
         return eventMapper.findByMemberId(memberId);
     }
+    public int deleteByMemberId(Integer memberId){
+        return eventMapper.deleteByMemberId(memberId);
+    }
 
 }
