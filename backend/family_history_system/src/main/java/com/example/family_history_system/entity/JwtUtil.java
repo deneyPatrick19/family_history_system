@@ -46,7 +46,6 @@ public class JwtUtil {
                     .setSigningKey(SECRET_KEY)
                     .parseClaimsJws(token)
                     .getBody();
-            
             return claims.getExpiration().before(new Date());
         } catch (Exception e) {
             return true;

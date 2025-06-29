@@ -11,9 +11,5 @@ public interface Family_tableService {
     Family_table findById(Integer id);
     List<Family_table> findAll();
     List<Family_table> findByUserId(Integer userId);
-
-    /**
-     * 级联删除家谱表及其所有成员、关系、事件等
-     */
     void deleteFamilyTableAndAllData(Integer familyTableId);
 }
