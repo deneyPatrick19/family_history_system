@@ -2,7 +2,7 @@
 
 CREATE TABLE `user` (
   `username` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
-  `password` varchar(20) DEFAULT NULL,
+  `password` varchar(100) DEFAULT NULL,
   `id` int NOT NULL AUTO_INCREMENT,
   PRIMARY KEY (`id`),
   UNIQUE KEY `user_unique` (`username`)
