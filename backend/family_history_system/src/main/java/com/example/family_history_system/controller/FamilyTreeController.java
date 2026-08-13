@@ -1,16 +1,19 @@
 package com.example.family_history_system.controller;
 
+import com.example.family_history_system.common.response.Response;
 import com.example.family_history_system.entity.Member;
 import com.example.family_history_system.entity.Relationship;
 import com.example.family_history_system.service.MemberService;
 import com.example.family_history_system.service.RelationService;
 import com.example.family_history_system.service.EventService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/family-tree")
 @CrossOrigin
@@ -24,29 +27,21 @@ public class FamilyTreeController {
     private EventService eventService;
 
     @GetMapping("/{familyTableId}")
-    public Map<String, Object> getFamilyTree(@PathVariable Integer familyTableId) {
-        Map<String, Object> result = new HashMap<>();
+    public Response getFamilyTree(@PathVariable Integer familyTableId) {
         try {
             List<Member> members = memberService.findByFamilyTableId(familyTableId);
             List<Relationship> relationships = relationService.findAllRelation();
 
             List<Map<String, Object>> treeData = buildFamilyTree(members, relationships);
-            
-            result.put("success", true);
-            result.put("data", treeData);
-            result.put("message", "获取家谱树成功");
-            
+
+            return Response.buildSuccess("获取家谱树成功", treeData);
         } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", "获取家谱树失败: " + e.getMessage());
+            return Response.buildFault("获取家谱树失败: " + e.getMessage());
         }
-        return result;
     }
 
     @PostMapping("/save-node")
-    public Map<String, Object> saveNode(@RequestBody Map<String, Object> nodeData) {
-        Map<String, Object> result = new HashMap<>();
-        
+    public Response saveNode(@RequestBody Map<String, Object> nodeData) {
         try {
             Member member = new Member();
 
@@ -58,7 +53,7 @@ public class FamilyTreeController {
             } else {
                 throw new IllegalArgumentException("familyTableId must be a number");
             }
-            
+
             member.setName((String) nodeData.get("name"));
             member.setGender((String) nodeData.get("gender"));
             member.setBio((String) nodeData.get("bio"));
@@ -74,8 +69,8 @@ public class FamilyTreeController {
                 Date deathDate = sdf.parse((String) nodeData.get("deathDate"));
                 member.setDeathdate(new java.sql.Date(deathDate.getTime()));
             }
-            
-            memberService.insertMember(member);
+
+            memberService.save(member);
             Integer memberId = member.getId(); // 获取插入后的ID
 
             if (nodeData.get("parentId") != null) {
@@ -89,7 +84,7 @@ public class FamilyTreeController {
                 } else {
                     throw new IllegalArgumentException("parentId must be a number");
                 }
-                
+
                 relation.setMember_id2(memberId);
                 relation.setRelation((String) nodeData.get("relationship"));
                 relationService.insertRelation(relation);
@@ -107,30 +102,22 @@ public class FamilyTreeController {
                 } else {
                     throw new IllegalArgumentException("childId must be a number");
                 }
-                
+
                 relation.setRelation((String) nodeData.get("relationship"));
                 relationService.insertRelation(relation);
             }
-            
-            result.put("success", true);
-            result.put("memberId", memberId);
-            result.put("message", "保存节点成功");
-            
+
+            return Response.buildSuccess("保存节点成功").withExtra("memberId", memberId);
         } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", "保存节点失败: " + e.getMessage());
+            return Response.buildFault("保存节点失败: " + e.getMessage());
         }
-        
-        return result;
     }
 
     @PostMapping("/update-node")
-    public Map<String, Object> updateNode(@RequestBody Map<String, Object> nodeData) {
-        Map<String, Object> result = new HashMap<>();
-        
+    public Response updateNode(@RequestBody Map<String, Object> nodeData) {
         try {
             Member member = new Member();
-            
+
 
             Object idObj = nodeData.get("id");
             if (idObj instanceof Number) {
@@ -140,7 +127,7 @@ public class FamilyTreeController {
             } else {
                 throw new IllegalArgumentException("id must be a number");
             }
-            
+
             member.setName((String) nodeData.get("name"));
             member.setGender((String) nodeData.get("gender"));
             member.setBio((String) nodeData.get("bio"));
@@ -156,8 +143,8 @@ public class FamilyTreeController {
                 Date deathDate = sdf.parse((String) nodeData.get("deathDate"));
                 member.setDeathdate(new java.sql.Date(deathDate.getTime()));
             }
-            
-            memberService.updateMember(member);
+
+            memberService.updateById(member);
 
             if (nodeData.get("relationship") != null) {
                 String newRelationship = (String) nodeData.get("relationship");
@@ -165,7 +152,7 @@ public class FamilyTreeController {
 
                 List<Relationship> parentRelations = relationService.findByMemberId2(memberId);
                 for (Relationship relation : parentRelations) {
-                    if (relation.getRelation().equals("父亲") || relation.getRelation().equals("母亲") || 
+                    if (relation.getRelation().equals("父亲") || relation.getRelation().equals("母亲") ||
                         relation.getRelation().equals("儿子") || relation.getRelation().equals("女儿")) {
 
                         relation.setRelation(newRelationship);
@@ -174,30 +161,21 @@ public class FamilyTreeController {
                     }
                 }
             }
-            
-            result.put("success", true);
-            result.put("message", "更新节点成功");
-            
+
+            return Response.buildSuccess("更新节点成功");
         } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", "更新节点失败: " + e.getMessage());
+            return Response.buildFault("更新节点失败: " + e.getMessage());
         }
-        
-        return result;
     }
 
     @GetMapping("/check-parent/{memberId}")
-    public Map<String, Object> checkParent(@PathVariable Integer memberId) {
-        Map<String, Object> result = new HashMap<>();
-        
+    public Response checkParent(@PathVariable Integer memberId) {
         try {
-
             List<Relationship> parentRelations = relationService.findByMemberId2(memberId);
             boolean hasParent = false;
             String parentName = null;
-            
-            for (Relationship relation : parentRelations) {
 
+            for (Relationship relation : parentRelations) {
                 if (relation.getRelation().equals("父亲") || relation.getRelation().equals("母亲")) {
                     hasParent = true;
                     Member parent = memberService.findById(relation.getMember_id1());
@@ -207,28 +185,20 @@ public class FamilyTreeController {
                     break;
                 }
             }
-            
-            result.put("success", true);
-            result.put("hasParent", hasParent);
-            result.put("parentName", parentName);
-            result.put("message", hasParent ? "该节点已有父节点" : "该节点没有父节点");
-            
+
+            return Response.buildSuccess(hasParent ? "该节点已有父节点" : "该节点没有父节点")
+                    .withExtra("hasParent", hasParent)
+                    .withExtra("parentName", parentName);
         } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", "检查父节点失败: " + e.getMessage());
+            return Response.buildFault("检查父节点失败: " + e.getMessage());
         }
-        
-        return result;
     }
 
     @PostMapping("/delete-node")
-    public Map<String, Object> deleteNode(@RequestBody Map<String, Object> nodeData) {
-        Map<String, Object> result = new HashMap<>();
-        
+    public Response deleteNode(@RequestBody Map<String, Object> nodeData) {
         try {
-
             Object idObj = nodeData.get("id");
-            Integer memberId;
+            int memberId;
             if (idObj instanceof Number) {
                 memberId = ((Number) idObj).intValue();
             } else if (idObj instanceof String) {
@@ -236,23 +206,18 @@ public class FamilyTreeController {
             } else {
                 throw new IllegalArgumentException("id must be a number");
             }
-            
+
             // 删除相关的事件
             eventService.deleteByMemberId(memberId);
             // 删除相关的关系
             relationService.deleteRelationsByMemberId(memberId);
             // 删除成员
-            memberService.deleteMember(memberId);
-            
-            result.put("success", true);
-            result.put("message", "删除节点成功");
-            
+            memberService.removeById(memberId);
+
+            return Response.buildSuccess("删除节点成功");
         } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", "删除节点失败: " + e.getMessage());
+            return Response.buildFault("删除节点失败: " + e.getMessage());
         }
-        
-        return result;
     }
 
     private List<Map<String, Object>> buildFamilyTree(List<Member> members, List<Relationship> relationships) {
@@ -270,7 +235,7 @@ public class FamilyTreeController {
             node.put("deathDate", member.getDeathdate());
             node.put("bio", member.getBio());
             node.put("children", new ArrayList<>());
-            
+
             memberMap.put(member.getId(), node);
             childrenMap.put(member.getId(), new ArrayList<>());
         }
@@ -278,7 +243,7 @@ public class FamilyTreeController {
         for (Relationship relation : relationships) {
             String relationType = relation.getRelation();
 
-            if (relationType.equals("父亲") || relationType.equals("母亲") || 
+            if (relationType.equals("父亲") || relationType.equals("母亲") ||
                 relationType.equals("儿子") || relationType.equals("女儿")) {
 
                 List<Integer> children = childrenMap.get(relation.getMember_id1());
@@ -290,15 +255,15 @@ public class FamilyTreeController {
                 relationshipMap.put(relation.getMember_id2(), relationType);
             }
         }
-        
+
 
         for (Map.Entry<Integer, Integer> entry : parentMap.entrySet()) {
             Integer childId = entry.getKey();
             Integer parentId = entry.getValue();
-            
+
             Map<String, Object> childNode = memberMap.get(childId);
             Map<String, Object> parentNode = memberMap.get(parentId);
-            
+
             if (childNode != null && parentNode != null) {
                 childNode.put("parentId", parentId);
                 childNode.put("parentName", parentNode.get("name"));
@@ -309,53 +274,50 @@ public class FamilyTreeController {
                 }
             }
         }
-        
+
         // 构建树结构
         List<Map<String, Object>> rootNodes = new ArrayList<>();
         Set<Integer> hasParent = new HashSet<>();
-        
-        for (Relationship relation : relationships) {
 
-            if (relation.getRelation().equals("父亲") || relation.getRelation().equals("母亲") || 
+        for (Relationship relation : relationships) {
+            if (relation.getRelation().equals("父亲") || relation.getRelation().equals("母亲") ||
                 relation.getRelation().equals("儿子") || relation.getRelation().equals("女儿")) {
                 hasParent.add(relation.getMember_id2());
             }
         }
-        
+
         for (Member member : members) {
             if (!hasParent.contains(member.getId())) {
-
                 Map<String, Object> rootNode = memberMap.get(member.getId());
                 buildChildren(rootNode, childrenMap, parentMap, memberMap);
                 rootNodes.add(rootNode);
             }
         }
-        
+
         return rootNodes;
     }
 
-    private void buildChildren(Map<String, Object> parentNode, Map<Integer, List<Integer>> childrenMap, 
+    private void buildChildren(Map<String, Object> parentNode, Map<Integer, List<Integer>> childrenMap,
                               Map<Integer, Integer> parentMap, Map<Integer, Map<String, Object>> memberMap) {
         Integer parentId = (Integer) parentNode.get("id");
         List<Integer> childrenIds = childrenMap.get(parentId);
-        
-        List<Map<String, Object>> children = new ArrayList<>();
-        
-        if (childrenIds != null && !childrenIds.isEmpty()) {
 
+        List<Map<String, Object>> children = new ArrayList<>();
+
+        if (childrenIds != null && !childrenIds.isEmpty()) {
             childrenIds.sort((id1, id2) -> {
                 Map<String, Object> node1 = memberMap.get(id1);
                 Map<String, Object> node2 = memberMap.get(id2);
                 Date date1 = (Date) node1.get("birthDate");
                 Date date2 = (Date) node2.get("birthDate");
-                
+
                 if (date1 == null && date2 == null) return 0;
                 if (date1 == null) return 1;
                 if (date2 == null) return -1;
-                
+
                 return date1.compareTo(date2);
             });
-            
+
             for (Integer childId : childrenIds) {
                 Map<String, Object> childNode = memberMap.get(childId);
                 if (childNode != null) {
@@ -370,16 +332,13 @@ public class FamilyTreeController {
     }
 
     @GetMapping("/members/{familyTableId}")
-    public Map<String, Object> getAllMembers(@PathVariable Integer familyTableId) {
-        Map<String, Object> result = new HashMap<>();
-        
+    public Response getAllMembers(@PathVariable Integer familyTableId) {
         try {
             List<Member> members = memberService.findByFamilyTableId(familyTableId);
-
             List<Relationship> relationships = relationService.findAllRelation();
 
             List<Map<String, Object>> memberList = new ArrayList<>();
-            
+
             for (Member member : members) {
                 Map<String, Object> memberInfo = new HashMap<>();
                 memberInfo.put("id", member.getId());
@@ -388,45 +347,49 @@ public class FamilyTreeController {
                 memberInfo.put("birthDate", member.getBirthdate());
                 memberInfo.put("deathDate", member.getDeathdate());
                 memberInfo.put("bio", member.getBio());
-                
+
                 // 查找父节点信息和关系信息
                 String parentName = null;
                 String relationship = null;
                 for (Relationship relation : relationships) {
-                    if (relation.getMember_id2().equals(member.getId()) && 
-                        (relation.getRelation().equals("父亲") || relation.getRelation().equals("母亲") ||
-                         relation.getRelation().equals("儿子") || relation.getRelation().equals("女儿"))) {
-                        Member parent = memberService.findById(relation.getMember_id1());
+                    Integer memberId2 = relation.getMember_id2();
+                    Integer memberId1 = relation.getMember_id1();
+                    String relationType = relation.getRelation();
+                    if (memberId2 == null || memberId1 == null || relationType == null) {
+                        continue;
+                    }
+                    if (memberId2.equals(member.getId()) &&
+                        ("父亲".equals(relationType) || "母亲".equals(relationType) ||
+                         "儿子".equals(relationType) || "女儿".equals(relationType))) {
+                        Member parent = memberService.findById(memberId1);
                         if (parent != null) {
                             parentName = parent.getName();
-                            relationship = relation.getRelation();
+                            relationship = relationType;
                         }
                         break;
                     }
                 }
-                
+
                 memberInfo.put("parentName", parentName);
                 memberInfo.put("relationship", relationship);
-                
+
                 memberList.add(memberInfo);
             }
-            
-            // 按姓名排序
+
+            // 按姓名排序（null 安全）
             memberList.sort((a, b) -> {
                 String nameA = (String) a.get("name");
                 String nameB = (String) b.get("name");
+                if (nameA == null && nameB == null) return 0;
+                if (nameA == null) return 1;
+                if (nameB == null) return -1;
                 return nameA.compareTo(nameB);
             });
-            
-            result.put("success", true);
-            result.put("data", memberList);
-            result.put("message", "获取成员列表成功");
-            
+
+            return Response.buildSuccess("获取成员列表成功", memberList);
         } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", "获取成员列表失败: " + e.getMessage());
+            log.error("获取成员列表失败 familyTableId={}", familyTableId, e);
+            return Response.buildFault("获取成员列表失败: " + e.getClass().getSimpleName() + " - " + e.getMessage());
         }
-        
-        return result;
     }
-} 
+}

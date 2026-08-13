@@ -1,5 +1,6 @@
 package com.example.family_history_system.controller;
 
+import com.example.family_history_system.common.response.Response;
 import com.example.family_history_system.entity.Family_table;
 import com.example.family_history_system.service.Family_tableService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 
 @RestController
 @RequestMapping("/family-table")
@@ -18,99 +18,85 @@ public class Family_tableController {
     private Family_tableService familyTableService;
 
     @PostMapping("/insert")
-    public int insert(@RequestBody Family_table familyTable){
-        return familyTableService.insert(familyTable);
+    public Response insert(@RequestBody Family_table familyTable){
+        boolean res = familyTableService.save(familyTable);
+        return res ? Response.buildSuccess("添加家族表成功") : Response.buildFault("添加家族表失败");
     }
 
     @PostMapping("/update")
-    public int update(@RequestBody Family_table familyTable){
-        return familyTableService.update(familyTable);
+    public Response update(@RequestBody Family_table familyTable){
+        boolean res = familyTableService.updateById(familyTable);
+        return res ? Response.buildSuccess("更新家族表成功") : Response.buildFault("更新家族表失败");
     }
 
     @PostMapping("/delete")
-    public int delete(@RequestBody Family_table familyTable){
-        return familyTableService.delete(familyTable.getId());
+    public Response delete(@RequestBody Family_table familyTable){
+        boolean res = familyTableService.removeById(familyTable.getId());
+        return res ? Response.buildSuccess("删除家族表成功") : Response.buildFault("删除家族表失败");
     }
 
     @PostMapping("/find")
-    public Family_table find(@RequestBody Family_table familyTable){
-        return familyTableService.findById(familyTable.getId());
+    public Response find(@RequestBody Family_table familyTable){
+        Family_table result = familyTableService.getById(familyTable.getId());
+        return result != null ? Response.buildSuccess("获取家族表成功", result) : Response.buildFault("家族表不存在");
     }
 
     @GetMapping("/findall")
-    public List<Family_table> findAll(){
-        return familyTableService.findAll();
+    public Response findAll(){
+        return Response.buildSuccess("获取所有家族表成功", familyTableService.findAll());
     }
 
     @GetMapping("/user/{userId}")
-    public Map<String, Object> getUserFamilyTables(@PathVariable Integer userId) {
-        Map<String, Object> result = new HashMap<>();
+    public Response getUserFamilyTables(@PathVariable Integer userId) {
         try {
             List<Family_table> familyTables = familyTableService.findByUserId(userId);
-            result.put("success", true);
-            result.put("data", familyTables);
-            result.put("message", "获取用户家族表成功");
+            return Response.buildSuccess("获取用户家族表成功", familyTables);
         } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", "获取用户家族表失败: " + e.getMessage());
+            return Response.buildFault("获取用户家族表失败: " + e.getMessage());
         }
-        return result;
     }
 
     @PostMapping("/create")
-    public Map<String, Object> createFamilyTable(@RequestBody Map<String, Object> tableData) {
-        Map<String, Object> result = new HashMap<>();
-        
+    public Response createFamilyTable(@RequestBody Map<String, Object> tableData) {
         try {
             Family_table familyTable = new Family_table();
             familyTable.setUser_id(((Number) tableData.get("userId")).intValue());
             familyTable.setTable_name((String) tableData.get("tableName"));
             familyTable.setContent((String) tableData.get("content"));
             familyTable.setEstablish_time(new java.sql.Date(System.currentTimeMillis()));
-            
-            familyTableService.insert(familyTable);
+
+            familyTableService.save(familyTable);
             Integer tableId = familyTable.getId(); // 获取插入后的ID
-            
-            result.put("success", true);
-            result.put("tableId", tableId);
-            result.put("message", "创建家族表成功");
+
+            return Response.buildSuccess("创建家族表成功").withExtra("tableId", tableId);
         } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", "创建家族表失败: " + e.getMessage());
+            return Response.buildFault("创建家族表失败: " + e.getMessage());
         }
-        return result;
     }
 
     @PostMapping("/update-family-table")
-    public Map<String, Object> updateFamilyTable(@RequestBody Map<String, Object> tableData) {
-        Map<String, Object> result = new HashMap<>();
+    public Response updateFamilyTable(@RequestBody Map<String, Object> tableData) {
         try {
             Family_table familyTable = new Family_table();
             familyTable.setId(((Number) tableData.get("id")).intValue());
             familyTable.setTable_name((String) tableData.get("tableName"));
             familyTable.setContent((String) tableData.get("content"));
-            int updateRes = familyTableService.update(familyTable);
-            result.put("success", updateRes > 0);
-            result.put("message", updateRes > 0 ? "编辑家族表成功" : "编辑家族表失败");
+            boolean updateRes = familyTableService.updateById(familyTable);
+            return updateRes
+                    ? Response.buildSuccess("编辑家族表成功")
+                    : Response.buildFault("编辑家族表失败");
         } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", "编辑家族表失败: " + e.getMessage());
+            return Response.buildFault("编辑家族表失败: " + e.getMessage());
         }
-        return result;
     }
 
     @PostMapping("/delete-family-table")
-    public Map<String, Object> deleteFamilyTable(@RequestBody Map<String, Object> tableData) {
-        Map<String, Object> result = new HashMap<>();
+    public Response deleteFamilyTable(@RequestBody Map<String, Object> tableData) {
         try {
             Integer id = ((Number) tableData.get("id")).intValue();
-            familyTableService.deleteFamilyTableAndAllData(id);
-            result.put("success", true);
-            result.put("message", "删除家族表及其所有数据成功");
+            return familyTableService.deleteFamilyTableAndAllData(id);
         } catch (Exception e) {
-            result.put("success", false);
-            result.put("message", "删除家族表失败: " + e.getMessage());
+            return Response.buildFault("删除家族表失败: " + e.getMessage());
         }
-        return result;
     }
-} 
+}
