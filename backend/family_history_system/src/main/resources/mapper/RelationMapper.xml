@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.family_history_system.mapper.RelationMapper">
+
+    <!-- 删除家族表下所有成员涉及的全部关系（含 member_id1 或 member_id2 任一匹配） -->
+    <delete id="deleteByFamilyTableId">
+        delete from `system`.relationship
+        where member_id1 in (select id from `system`.member where family_table_id = #{familyTableId})
+           or member_id2 in (select id from `system`.member where family_table_id = #{familyTableId})
+    </delete>
+
+</mapper>
