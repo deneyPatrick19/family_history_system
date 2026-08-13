@@ -459,8 +459,8 @@ export default {
 <style scoped>
 .member-list {
   padding: 20px;
-  height: 100vh;
-  overflow: auto;
+  height: 100%;
+  overflow: visible;
   background-color: #f5f7fa;
 }
 

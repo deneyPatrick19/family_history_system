@@ -575,8 +575,8 @@ export default {
 <style scoped>
 .family-tree {
   padding: 20px;
-  height: 100vh;
-  overflow: auto;
+  height: 100%;
+  overflow: visible;
 }
 
 .tree-management {
